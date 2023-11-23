@@ -1,1 +1,1 @@
-(()=>{"use strict";chrome.runtime.onMessage.addListener(((e,s,r)=>{console.log("message received in background script:",e)}))})();
+chrome.runtime.onMessage.addListener(((e,s,n)=>{console.log("message received in background script:",e)}));
