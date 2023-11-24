@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import '../style/input.css'
 import { useState, useEffect } from 'react'
+// import save from '../static/save2.svg'
 
 const App: React.FC<{}> = () => {
   const [recording, setRecording] = useState(false)
@@ -75,16 +76,36 @@ const App: React.FC<{}> = () => {
   return (
     <section className='fixed left-4 bottom-10 w-[240px] h-[240px] bg-white z-50'>
       <h1>Screen Recorder</h1>
-      <button onClick={handleStartStopClick}>
-        {recording ? 'Stop Recording' : 'Start Recording'}
-      </button>
-      {videoURL && (
-        <>
-          <video controls src={videoURL} width='400'></video>
-          <br />
-          <button onClick={handleDownloadClick}>Download</button>
-        </>
-      )}
+      <div className='flex flex-row '>
+        <div className='flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full'>
+          <div className='w-[64px] h-[64px] bg-white rounded-full flex flex-row items-center justify-center m-2'>
+            <div className='flex flex-row items-center justify-center '>
+              <button
+                className='bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm'
+                onClick={handleStartStopClick}
+              >
+                {recording ? '정지' : ''}
+              </button>
+            </div>
+          </div>
+          <div className='flex flex-row items-center justify-center'>
+            <div className='bg-white rounded-full w-[155.4px] h-[63.5px]'>
+              <div className='flex flex-row items-center justify-around'>
+                <img src={require('../static/save2.svg').default} alt='save' />
+                <div>이슈저장</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {videoURL && (
+          <>
+            <video controls src={videoURL} width='400'></video>
+            <br />
+            <button onClick={handleDownloadClick}>Download</button>
+          </>
+        )}
+      </div>
     </section>
   )
 }
