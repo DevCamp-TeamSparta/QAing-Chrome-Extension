@@ -8,6 +8,7 @@
     "48": "icon.png",
     "128": "icon.png"
   },
+
   "action": {
     "default_popup": "popup.html",
     "default_title": "React Extension",

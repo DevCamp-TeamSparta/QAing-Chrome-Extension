@@ -36,8 +36,20 @@ module.exports = {
         ],
       },
       {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+            },
+          },
+        ],
+      },
+
+      {
         type: 'asset/resource',
-        test: /\.(png|svg|jpg|jpeg|woff|woff2|eot|ttf)$/i,
+        test: /\.(png|svg|jpg|jpeg|woff|woff2|eot|ttf)$/,
       },
     ],
   },
@@ -48,7 +60,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, './manifest.json'),
+          from: path.resolve(__dirname, './src/static'),
           to: path.resolve(__dirname, 'dist'),
         },
       ],
