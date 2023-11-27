@@ -12,5 +12,7 @@
    npm i -D copy-webpack-plugin
    npm i -D html-webpack-plugin
 7. 타입관련 설치
-   npm i -D @types/react @types/react-dom 8.모드
+   npm i -D @types/react @types/react-dom 
    npm i -D webpack-merge
+8. eslint 설정
+   npm i -D eslint-plugin-tailwindcss prettier-plugin-tailwindcss
