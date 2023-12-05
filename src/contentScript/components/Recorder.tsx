@@ -29,6 +29,7 @@ function Recorder() {
 
 					recorder.onstop = () => {
 						const blob = new Blob(chunks, { type: 'video/webm' })
+
 						const url = URL.createObjectURL(blob)
 						setVideoURL(url)
 						console.log('url', url)

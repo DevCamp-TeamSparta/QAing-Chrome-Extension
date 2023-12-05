@@ -1,3 +1,9 @@
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('message received in background script:', message)
+chrome.runtime.onInstalled.addListener((details) => {
+	chrome.contextMenus.create({
+		title: 'Test Context Menu',
+		id: 'contextMenu1',
+		contexts: ['page', 'selection'],
+	})
 })
+
+console.log('background script running')
