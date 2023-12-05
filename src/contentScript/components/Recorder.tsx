@@ -59,6 +59,7 @@ function Recorder() {
 		setRecording((prevRecording) => !prevRecording)
 		if (recording) {
 			setIsRunning((prevIsRunning) => !prevIsRunning)
+			setTime(0)
 		}
 	}
 
@@ -109,7 +110,11 @@ function Recorder() {
 
 	const [time, setTime] = useState<number>(0)
 	const [isRunning, setIsRunning] = useState<boolean>(false)
-	const [timeRecords, setTimeRecords] = useState<string[]>([])
+	const [timeRecords, setTimeRecords] = useState<number[]>([])
+
+	useEffect(() => {
+		console.log('timeRecords', timeRecords)
+	})
 
 	useInterval(
 		() => {
@@ -123,10 +128,7 @@ function Recorder() {
 	}
 
 	const handleRecordTime = () => {
-		setTimeRecords((prevRecords) => [
-			...prevRecords,
-			new Date().toLocaleTimeString(),
-		])
+		setTimeRecords((prevRecords) => [...prevRecords, time])
 	}
 
 	const handleReset = () => {
@@ -170,7 +172,9 @@ function Recorder() {
 									/>
 								</svg>
 
-								<div className="font-semibold text-xl">이슈저장</div>
+								<div className="font-semibold text-xl">
+									<button onClick={handleRecordTime}>이슈저장</button>
+								</div>
 								{/* <button onClick={handleStartStop}>
 									{isRunning ? 'Stop' : 'Start'}
 								</button>
