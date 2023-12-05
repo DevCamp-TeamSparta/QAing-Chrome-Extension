@@ -1,5 +1,7 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useInterval } from '../hooks/useInterval'
 
 function Recorder() {
 	const [recording, setRecording] = useState(false)
@@ -14,6 +16,7 @@ function Recorder() {
 			navigator.mediaDevices
 				.getDisplayMedia({ video: true })
 				.then((stream: MediaStream) => {
+					handleStartStop()
 					setMediaStream(stream)
 					const recorder = new MediaRecorder(stream)
 					setMediaRecorder(recorder)
@@ -54,23 +57,83 @@ function Recorder() {
 
 	const handleStartStopClick = () => {
 		setRecording((prevRecording) => !prevRecording)
-	}
-
-	const handleDownloadClick = () => {
-		// 녹화된 비디오 다운로드
-		if (recordedChunks.length > 0) {
-			const blob = new Blob(recordedChunks, { type: 'video/webm' })
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = 'recorded-screen.webm'
-			document.body.appendChild(a)
-			a.click()
-			URL.revokeObjectURL(url)
-			// document.body.removeChild(a)
-			console.log('a', a)
+		if (recording) {
+			setIsRunning((prevIsRunning) => !prevIsRunning)
 		}
 	}
+
+	// const backendEndpoint = process.env.PUBLIC_BACKEND_API_URL
+	const formData = new FormData()
+
+	const handleDownloadClick = async () => {
+		// 녹화된 비디오 다운로드
+
+		let timestamps = ['00:12', '00:40']
+		if (recordedChunks.length > 0) {
+			const blob = new Blob(recordedChunks, { type: 'video/webm' })
+			formData.append('webmFile', blob)
+			formData.append('timestamps', JSON.stringify(timestamps))
+			console.log('전송시작')
+
+			await axios
+				.post(`https://test.qaing.co/videos/process`, formData)
+				.then((response) => {
+					// 서버로부터의 응답 처리
+					console.log(response.data)
+				})
+				.catch((error) => {
+					// 에러 처리
+					console.error('오류발생', error)
+				})
+
+			// //background로 전달하는 코드
+			// 	chrome.runtime.sendMessage(
+			// 		{ action: 'performRequest', data: formData },
+			// 		(response) => {
+			// 			console.log(response)
+			// 		},
+			// 	)
+			// }
+
+			// const url = URL.createObjectURL(blob)
+			// const a = document.createElement('a')
+			// a.href = url
+			// a.download = 'recorded-screen.webm'
+			// document.body.appendChild(a)
+			// a.click()
+			// URL.revokeObjectURL(url)
+			// document.body.removeChild(a)
+			console.log('a')
+		}
+	}
+
+	const [time, setTime] = useState<number>(0)
+	const [isRunning, setIsRunning] = useState<boolean>(false)
+	const [timeRecords, setTimeRecords] = useState<string[]>([])
+
+	useInterval(
+		() => {
+			setTime((prevTime) => prevTime + 1)
+		},
+		isRunning ? 1000 : null,
+	)
+
+	const handleStartStop = () => {
+		setIsRunning((prevIsRunning) => !prevIsRunning)
+	}
+
+	const handleRecordTime = () => {
+		setTimeRecords((prevRecords) => [
+			...prevRecords,
+			new Date().toLocaleTimeString(),
+		])
+	}
+
+	const handleReset = () => {
+		setTime(0)
+		setTimeRecords([])
+	}
+
 	return (
 		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] bg-white z-50">
 			<h1>Screen Recorder</h1>
@@ -108,6 +171,16 @@ function Recorder() {
 								</svg>
 
 								<div className="font-semibold text-xl">이슈저장</div>
+								{/* <button onClick={handleStartStop}>
+									{isRunning ? 'Stop' : 'Start'}
+								</button>
+								<button onClick={handleRecordTime}>타임 기록</button>
+								<button onClick={handleReset}>리셋</button> */}
+								<p>{`${Math.floor(time / 60)
+									.toString()
+									.padStart(2, '0')}:${(time % 60)
+									.toString()
+									.padStart(2, '0')}`}</p>
 							</div>
 						</div>
 					</div>
@@ -117,7 +190,13 @@ function Recorder() {
 					<>
 						<video controls src={videoURL} width="400"></video>
 						<br />
-						<button onClick={handleDownloadClick}>Download</button>
+						<button
+							type="submit"
+							className="w-[400px] h-[100px] bg-white"
+							onClick={handleDownloadClick}
+						>
+							전송하기
+						</button>
 					</>
 				)}
 			</div>
