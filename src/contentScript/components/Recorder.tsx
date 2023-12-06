@@ -10,6 +10,15 @@ function Recorder() {
 	const [recordedChunks, setRecordedChunks] = useState<Blob[] | []>([])
 	const [videoURL, setVideoURL] = useState<string | null>(null)
 
+	//계속 진행되는 타이머
+	const [time, setTime] = useState<number>(0)
+	const [isRunning, setIsRunning] = useState<boolean>(false)
+	const [timeRecords, setTimeRecords] = useState<number[]>([])
+	//15분 마다 리셋되는 타이머
+	const [TimerBeingReset, setTimerBeingReset] = useState<number>(0)
+	const [isRunningTimerBeingReset, setIsRunningTimerBeingReset] =
+		useState<boolean>(false)
+
 	useEffect(() => {
 		if (recording) {
 			// 미디어 스트림 획득
@@ -17,7 +26,8 @@ function Recorder() {
 				.getDisplayMedia({ video: true })
 				.then((stream: MediaStream) => {
 					handleStartStop()
-					setMediaStream(stream)
+					resetTimerhandleStartStop()
+					// setMediaStream(stream)
 					const recorder = new MediaRecorder(stream)
 					setMediaRecorder(recorder)
 
@@ -26,19 +36,27 @@ function Recorder() {
 						if (e.data.size > 0) {
 							chunks.push(e.data)
 							setRecordedChunks(chunks)
+							const blob = new Blob(chunks, { type: 'video/webm' }) // Blob 객체 생성
+							onSubmitVideo(blob)
+							chunks.pop()
 							console.log('chunks', chunks)
 						}
 					}
 
-					recorder.onstop = () => {
-						const blob = new Blob(chunks, { type: 'video/webm' })
+					recorder.start(20000)
 
-						const url = URL.createObjectURL(blob)
-						setVideoURL(url)
-						console.log('url', url)
-					}
+					// 5분 후에 녹화 중지
+					const timeoutId = setTimeout(
+						() => {
+							recorder.stop()
+							if (mediaStream) {
+								mediaStream.getTracks().forEach((track) => track.stop())
+							}
+						},
+						60 * 1000 + 2,
+					) // 5분
 
-					recorder.start()
+					return () => clearTimeout(timeoutId) // 컴포넌트 unmount 시 타이머 해제
 				})
 				.catch((error) => {
 					console.error('Error accessing media devices:', error)
@@ -57,23 +75,21 @@ function Recorder() {
 
 	const handleStartStopClick = () => {
 		setRecording((prevRecording) => !prevRecording)
+
 		if (recording) {
 			setIsRunning((prevIsRunning) => !prevIsRunning)
+			setIsRunningTimerBeingReset((prevIsRunning) => !prevIsRunning)
 			setTime(0)
+			setTimerBeingReset(0)
 		}
 	}
 
-	// const backendEndpoint = process.env.PUBLIC_BACKEND_API_URL
-	const formData = new FormData()
-
-	const handleDownloadClick = async () => {
-		// 녹화된 비디오 다운로드
-
-		let timestamps = ['00:12', '00:40']
-		if (recordedChunks.length > 0) {
-			const blob = new Blob(recordedChunks, { type: 'video/webm' })
+	const onSubmitVideo = async (blob: Blob) => {
+		if (blob) {
+			// const blob = new Blob(recordedChunks, { type: 'video/webm' })
+			const formData = new FormData()
 			formData.append('webmFile', blob)
-			formData.append('timestamps', JSON.stringify(timestamps))
+			formData.append('timestamps', JSON.stringify(timeRecords))
 			console.log('전송시작')
 
 			await axios
@@ -86,36 +102,32 @@ function Recorder() {
 					// 에러 처리
 					console.error('오류발생', error)
 				})
+		}
+	}
 
-			// //background로 전달하는 코드
-			// 	chrome.runtime.sendMessage(
-			// 		{ action: 'performRequest', data: formData },
-			// 		(response) => {
-			// 			console.log(response)
-			// 		},
-			// 	)
-			// }
+	const handleDownloadClick = () => {
+		// 녹화된 비디오 다운로드
 
-			// const url = URL.createObjectURL(blob)
-			// const a = document.createElement('a')
-			// a.href = url
-			// a.download = 'recorded-screen.webm'
-			// document.body.appendChild(a)
-			// a.click()
-			// URL.revokeObjectURL(url)
-			// document.body.removeChild(a)
+		if (recordedChunks.length > 0) {
+			const blob = new Blob(recordedChunks, { type: 'video/webm' })
+			console.log('전송시작')
+			const url = URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = 'recorded-screen.webm'
+			document.body.appendChild(a)
+			a.click()
+			URL.revokeObjectURL(url)
+			document.body.removeChild(a)
 			console.log('a')
 		}
 	}
 
-	const [time, setTime] = useState<number>(0)
-	const [isRunning, setIsRunning] = useState<boolean>(false)
-	const [timeRecords, setTimeRecords] = useState<number[]>([])
-
 	useEffect(() => {
 		console.log('timeRecords', timeRecords)
-	})
+	}, [timeRecords])
 
+	//타이머에서 계속 시간이 증가하도록 하는 코드
 	useInterval(
 		() => {
 			setTime((prevTime) => prevTime + 1)
@@ -123,8 +135,20 @@ function Recorder() {
 		isRunning ? 1000 : null,
 	)
 
+	//15분마다 초기화 되게 할 타이머
+	useInterval(
+		() => {
+			setTimerBeingReset((prevTime) => prevTime + 1)
+		},
+		isRunningTimerBeingReset ? 1000 : null,
+	)
+
 	const handleStartStop = () => {
 		setIsRunning((prevIsRunning) => !prevIsRunning)
+	}
+
+	const resetTimerhandleStartStop = () => {
+		setIsRunningTimerBeingReset((prevIsRunning) => !prevIsRunning)
 	}
 
 	const handleRecordTime = () => {
