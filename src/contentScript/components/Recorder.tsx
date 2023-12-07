@@ -7,7 +7,7 @@ function Recorder() {
 	const [recording, setRecording] = useState(false)
 	const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
-	const [recordedChunks, setRecordedChunks] = useState<Blob[] | []>([])
+	const [recordedChunks, setRecordedChunks] = useState<Blob>()
 	const [videoURL, setVideoURL] = useState<string | null>(null)
 
 	//계속 진행되는 타이머
@@ -35,9 +35,9 @@ function Recorder() {
 					recorder.ondataavailable = (e) => {
 						if (e.data.size > 0) {
 							chunks.push(e.data)
-							setRecordedChunks(chunks)
 							const blob = new Blob(chunks, { type: 'video/webm' }) // Blob 객체 생성
-							onSubmitVideo(blob)
+							setRecordedChunks(blob)
+							// onSubmitVideo(blob, timeArray)
 							chunks.pop()
 							console.log('chunks', chunks)
 						}
@@ -73,6 +73,12 @@ function Recorder() {
 		// console.log('recordedChunks', recordedChunks)
 	}, [recording])
 
+	useEffect(() => {
+		if (recordedChunks) {
+			onSubmitVideo(recordedChunks, timeRecords)
+		}
+	}, [recordedChunks])
+
 	const handleStartStopClick = () => {
 		setRecording((prevRecording) => !prevRecording)
 
@@ -84,12 +90,13 @@ function Recorder() {
 		}
 	}
 
-	const onSubmitVideo = async (blob: Blob) => {
+	const onSubmitVideo = async (blob: Blob, timeRecords: number[]) => {
 		if (blob) {
 			// const blob = new Blob(recordedChunks, { type: 'video/webm' })
 			const formData = new FormData()
 			formData.append('webmFile', blob)
 			formData.append('timestamps', JSON.stringify(timeRecords))
+			console.log('timeRecords', timeRecords)
 			console.log('전송시작')
 
 			await axios
@@ -105,23 +112,23 @@ function Recorder() {
 		}
 	}
 
-	const handleDownloadClick = () => {
-		// 녹화된 비디오 다운로드
+	// const handleDownloadClick = () => {
+	// 	// 녹화된 비디오 다운로드
 
-		if (recordedChunks.length > 0) {
-			const blob = new Blob(recordedChunks, { type: 'video/webm' })
-			console.log('전송시작')
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = 'recorded-screen.webm'
-			document.body.appendChild(a)
-			a.click()
-			URL.revokeObjectURL(url)
-			document.body.removeChild(a)
-			console.log('a')
-		}
-	}
+	// 	if (recordedChunks.length > 0) {
+	// 		const blob = new Blob(recordedChunks, { type: 'video/webm' })
+	// 		console.log('전송시작')
+	// 		const url = URL.createObjectURL(blob)
+	// 		const a = document.createElement('a')
+	// 		a.href = url
+	// 		a.download = 'recorded-screen.webm'
+	// 		document.body.appendChild(a)
+	// 		a.click()
+	// 		URL.revokeObjectURL(url)
+	// 		document.body.removeChild(a)
+	// 		console.log('a')
+	// 	}
+	// }
 
 	useEffect(() => {
 		console.log('timeRecords', timeRecords)
@@ -221,7 +228,7 @@ function Recorder() {
 						<button
 							type="submit"
 							className="w-[400px] h-[100px] bg-white"
-							onClick={handleDownloadClick}
+							// onClick={handleDownloadClick}
 						>
 							전송하기
 						</button>
