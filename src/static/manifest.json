@@ -1,6 +1,6 @@
 {
-	"name": "React Extension",
-	"description": "Chrome Extension in React!",
+	"name": "QAing",
+	"description": "QAing",
 	"version": "1.0.0",
 	"manifest_version": 3,
 	"icons": {
@@ -10,7 +10,6 @@
 	},
 
 	"action": {
-		"default_popup": "popup.html",
 		"default_title": "React Extension",
 		"default_icon": "icon.png"
 	},
@@ -18,7 +17,7 @@
 		"http://localhost:3000/auth/google/callback",
 		"https://app.qaing.co/auth/google/callback"
 	],
-	"permissions": ["storage", "context", "cookies"],
+	"permissions": ["storage", "context", "cookies", "activeTab", "scripting"],
 	"options_page": "options.html",
 	"background": {
 		"service_worker": "background.js"

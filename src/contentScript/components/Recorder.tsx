@@ -12,7 +12,6 @@ function Recorder() {
 	//토큰
 	const [accessToken, setAccessToken] = useState(null)
 
-
 	//계속 진행되는 타이머
 	const [time, setTime] = useState<number>(0)
 	const [isRunning, setIsRunning] = useState<boolean>(false)
@@ -21,7 +20,6 @@ function Recorder() {
 	const [TimerBeingReset, setTimerBeingReset] = useState<number>(0)
 	const [isRunningTimerBeingReset, setIsRunningTimerBeingReset] =
 		useState<boolean>(false)
-
 
 	//화면녹화 버튼을 감지해서 녹화를 실행하는 코드
 	useEffect(() => {
@@ -36,14 +34,12 @@ function Recorder() {
 					const recorder = new MediaRecorder(stream)
 					setMediaRecorder(recorder)
 
-					const chunks: Blob[] = []
 					recorder.ondataavailable = (e) => {
 						if (e.data.size > 0) {
-							chunks.push(e.data)
+							const chunks: Blob[] = [e.data]
 							const blob = new Blob(chunks, { type: 'video/webm' }) // Blob 객체 생성
 							setRecordedChunks(blob)
 							// onSubmitVideo(blob, timeArray)
-							chunks.pop()
 							console.log('chunks', chunks)
 						}
 					}
@@ -78,7 +74,6 @@ function Recorder() {
 		// console.log('recordedChunks', recordedChunks)
 	}, [recording])
 
-
 	useEffect(() => {
 		if (recordedChunks) {
 			onSubmitVideo(recordedChunks, timeRecords)
@@ -96,7 +91,6 @@ function Recorder() {
 			setTimerBeingReset(0)
 		}
 	}
-
 
 	const onSubmitVideo = async (blob: Blob, timeRecords: number[]) => {
 		if (blob) {
@@ -176,21 +170,21 @@ function Recorder() {
 	}
 
 	//녹화된 비디오 다운로드 버튼 핸들러
-	const handleDownloadClick = () => {
-		// 녹화된 비디오 다운로드
-		if (recordedChunks.length > 0) {
-			const blob = new Blob(recordedChunks, { type: 'video/webm' })
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = 'recorded-screen.webm'
-			document.body.appendChild(a)
-			a.click()
-			URL.revokeObjectURL(url)
-			// document.body.removeChild(a)
-			console.log('a', a)
-		}
-	}
+	// const handleDownloadClick = () => {
+	// 	// 녹화된 비디오 다운로드
+	// 	if (recordedChunks.length > 0) {
+	// 		const blob = new Blob(recordedChunks, { type: 'video/webm' })
+	// 		const url = URL.createObjectURL(blob)
+	// 		const a = document.createElement('a')
+	// 		a.href = url
+	// 		a.download = 'recorded-screen.webm'
+	// 		document.body.appendChild(a)
+	// 		a.click()
+	// 		URL.revokeObjectURL(url)
+	// 		// document.body.removeChild(a)
+	// 		console.log('a', a)
+	// 	}
+	// }
 
 	//크롬 익스텐션이 실행 됬을 때 토큰 background.js를 이용해 chrome.cookie에서 토큰을 가져온다.
 	useEffect(() => {
@@ -221,7 +215,6 @@ function Recorder() {
 	useEffect(() => {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
-
 
 	return (
 		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] bg-white z-50">
