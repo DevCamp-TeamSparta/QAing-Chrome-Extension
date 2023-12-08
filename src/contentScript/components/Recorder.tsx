@@ -7,7 +7,10 @@ function Recorder() {
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
 	const [recordedChunks, setRecordedChunks] = useState<Blob[] | []>([])
 	const [videoURL, setVideoURL] = useState<string | null>(null)
+	//토큰
+	const [accessToken, setAccessToken] = useState(null)
 
+	//화면녹화 버튼을 감지해서 녹화를 실행하는 코드
 	useEffect(() => {
 		if (recording) {
 			// 미디어 스트림 획득
@@ -52,10 +55,12 @@ function Recorder() {
 		// console.log('recordedChunks', recordedChunks)
 	}, [recording])
 
+	//녹화 시작 정지 버튼핸들러
 	const handleStartStopClick = () => {
 		setRecording((prevRecording) => !prevRecording)
 	}
 
+	//녹화된 비디오 다운로드 버튼 핸들러
 	const handleDownloadClick = () => {
 		// 녹화된 비디오 다운로드
 		if (recordedChunks.length > 0) {
@@ -71,6 +76,37 @@ function Recorder() {
 			console.log('a', a)
 		}
 	}
+
+	//크롬 익스텐션이 실행 됬을 때 토큰 background.js를 이용해 chrome.cookie에서 토큰을 가져온다.
+	useEffect(() => {
+		// alert('익스텐션 시작')
+		const currentUrl = window.location.origin
+		console.log('currentUrl', currentUrl)
+		console.log('currentUrl', currentUrl === 'https://app.qaing.co')
+
+		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
+			if (response.accessToken) {
+				setAccessToken(response.accessToken)
+				alert('로그인이 되었습니다.')
+			} else {
+				// alert('로그인이 필요합니다.')
+				if (
+					currentUrl === 'https://app.qaing.co' ||
+					currentUrl === 'http://localhost:3000' ||
+					currentUrl === 'https://accounts.google.com' ||
+					currentUrl === 'https://test.qaing.co'
+				) {
+					return
+				}
+				window.location.href = 'https://app.qaing.co/auth/signup'
+			}
+		})
+	}, [])
+
+	useEffect(() => {
+		console.log('accessToken', accessToken)
+	}, [accessToken])
+
 	return (
 		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] bg-white z-50">
 			<h1>Screen Recorder</h1>
