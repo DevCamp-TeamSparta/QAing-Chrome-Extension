@@ -1,14 +1,27 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useInterval } from '../hooks/useInterval'
 
 function Recorder() {
 	const [recording, setRecording] = useState(false)
 	const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
-	const [recordedChunks, setRecordedChunks] = useState<Blob[] | []>([])
+	const [recordedChunks, setRecordedChunks] = useState<Blob>()
 	const [videoURL, setVideoURL] = useState<string | null>(null)
 	//토큰
 	const [accessToken, setAccessToken] = useState(null)
+
+
+	//계속 진행되는 타이머
+	const [time, setTime] = useState<number>(0)
+	const [isRunning, setIsRunning] = useState<boolean>(false)
+	const [timeRecords, setTimeRecords] = useState<number[]>([])
+	//15분 마다 리셋되는 타이머
+	const [TimerBeingReset, setTimerBeingReset] = useState<number>(0)
+	const [isRunningTimerBeingReset, setIsRunningTimerBeingReset] =
+		useState<boolean>(false)
+
 
 	//화면녹화 버튼을 감지해서 녹화를 실행하는 코드
 	useEffect(() => {
@@ -17,7 +30,9 @@ function Recorder() {
 			navigator.mediaDevices
 				.getDisplayMedia({ video: true })
 				.then((stream: MediaStream) => {
-					setMediaStream(stream)
+					handleStartStop()
+					resetTimerhandleStartStop()
+					// setMediaStream(stream)
 					const recorder = new MediaRecorder(stream)
 					setMediaRecorder(recorder)
 
@@ -25,20 +40,28 @@ function Recorder() {
 					recorder.ondataavailable = (e) => {
 						if (e.data.size > 0) {
 							chunks.push(e.data)
-							setRecordedChunks(chunks)
+							const blob = new Blob(chunks, { type: 'video/webm' }) // Blob 객체 생성
+							setRecordedChunks(blob)
+							// onSubmitVideo(blob, timeArray)
+							chunks.pop()
 							console.log('chunks', chunks)
 						}
 					}
 
-					recorder.onstop = () => {
-						const blob = new Blob(chunks, { type: 'video/webm' })
+					recorder.start(20000)
 
-						const url = URL.createObjectURL(blob)
-						setVideoURL(url)
-						console.log('url', url)
-					}
+					// 5분 후에 녹화 중지
+					const timeoutId = setTimeout(
+						() => {
+							recorder.stop()
+							if (mediaStream) {
+								mediaStream.getTracks().forEach((track) => track.stop())
+							}
+						},
+						60 * 1000 + 2,
+					) // 5분
 
-					recorder.start()
+					return () => clearTimeout(timeoutId) // 컴포넌트 unmount 시 타이머 해제
 				})
 				.catch((error) => {
 					console.error('Error accessing media devices:', error)
@@ -55,9 +78,101 @@ function Recorder() {
 		// console.log('recordedChunks', recordedChunks)
 	}, [recording])
 
+
+	useEffect(() => {
+		if (recordedChunks) {
+			onSubmitVideo(recordedChunks, timeRecords)
+		}
+	}, [recordedChunks])
+
 	//녹화 시작 정지 버튼핸들러
 	const handleStartStopClick = () => {
 		setRecording((prevRecording) => !prevRecording)
+
+		if (recording) {
+			setIsRunning((prevIsRunning) => !prevIsRunning)
+			setIsRunningTimerBeingReset((prevIsRunning) => !prevIsRunning)
+			setTime(0)
+			setTimerBeingReset(0)
+		}
+	}
+
+
+	const onSubmitVideo = async (blob: Blob, timeRecords: number[]) => {
+		if (blob) {
+			// const blob = new Blob(recordedChunks, { type: 'video/webm' })
+			const formData = new FormData()
+			formData.append('webmFile', blob)
+			formData.append('timestamps', JSON.stringify(timeRecords))
+			console.log('timeRecords', timeRecords)
+			console.log('전송시작')
+
+			await axios
+				.post(`https://test.qaing.co/videos/process`, formData)
+				.then((response) => {
+					// 서버로부터의 응답 처리
+					console.log(response.data)
+				})
+				.catch((error) => {
+					// 에러 처리
+					console.error('오류발생', error)
+				})
+		}
+	}
+
+	// const handleDownloadClick = () => {
+	// 	// 녹화된 비디오 다운로드
+
+	// 	if (recordedChunks.length > 0) {
+	// 		const blob = new Blob(recordedChunks, { type: 'video/webm' })
+	// 		console.log('전송시작')
+	// 		const url = URL.createObjectURL(blob)
+	// 		const a = document.createElement('a')
+	// 		a.href = url
+	// 		a.download = 'recorded-screen.webm'
+	// 		document.body.appendChild(a)
+	// 		a.click()
+	// 		URL.revokeObjectURL(url)
+	// 		document.body.removeChild(a)
+	// 		console.log('a')
+	// 	}
+	// }
+
+	useEffect(() => {
+		console.log('timeRecords', timeRecords)
+	}, [timeRecords])
+
+	//타이머에서 계속 시간이 증가하도록 하는 코드
+	useInterval(
+		() => {
+			setTime((prevTime) => prevTime + 1)
+		},
+		isRunning ? 1000 : null,
+	)
+
+	//15분마다 초기화 되게 할 타이머
+	useInterval(
+		() => {
+			setTimerBeingReset((prevTime) => prevTime + 1)
+		},
+		isRunningTimerBeingReset ? 1000 : null,
+	)
+
+	const handleStartStop = () => {
+		setIsRunning((prevIsRunning) => !prevIsRunning)
+	}
+
+	const resetTimerhandleStartStop = () => {
+		setIsRunningTimerBeingReset((prevIsRunning) => !prevIsRunning)
+	}
+
+	const handleRecordTime = () => {
+		setTimeRecords((prevRecords) => [...prevRecords, time])
+	}
+
+	const handleReset = () => {
+		setTime(0)
+		setTimeRecords([])
 	}
 
 	//녹화된 비디오 다운로드 버튼 핸들러
@@ -107,6 +222,7 @@ function Recorder() {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
 
+
 	return (
 		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] bg-white z-50">
 			<h1>Screen Recorder</h1>
@@ -143,7 +259,19 @@ function Recorder() {
 									/>
 								</svg>
 
-								<div className="font-semibold text-xl">이슈저장</div>
+								<div className="font-semibold text-xl">
+									<button onClick={handleRecordTime}>이슈저장</button>
+								</div>
+								{/* <button onClick={handleStartStop}>
+									{isRunning ? 'Stop' : 'Start'}
+								</button>
+								<button onClick={handleRecordTime}>타임 기록</button>
+								<button onClick={handleReset}>리셋</button> */}
+								<p>{`${Math.floor(time / 60)
+									.toString()
+									.padStart(2, '0')}:${(time % 60)
+									.toString()
+									.padStart(2, '0')}`}</p>
 							</div>
 						</div>
 					</div>
@@ -153,7 +281,13 @@ function Recorder() {
 					<>
 						<video controls src={videoURL} width="400"></video>
 						<br />
-						<button onClick={handleDownloadClick}>Download</button>
+						<button
+							type="submit"
+							className="w-[400px] h-[100px] bg-white"
+							// onClick={handleDownloadClick}
+						>
+							전송하기
+						</button>
 					</>
 				)}
 			</div>
