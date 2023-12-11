@@ -16,6 +16,12 @@ function Recorder() {
 	const [time, setTime] = useState<number>(0)
 	const [isRunning, setIsRunning] = useState<boolean>(false)
 	const [timeRecords, setTimeRecords] = useState<number[]>([])
+	const THROTTLE_TIME = 1000
+
+	//유적 FolderID
+	const [folderId, setFolderId] = useState<string>('')
+
+	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
 
 	const recordTimeout = useRef<NodeJS.Timeout | null>(null)
 
@@ -53,7 +59,8 @@ function Recorder() {
 			}
 
 			recorder.start()
-			setIsRunning(true)
+			handleStartStop()
+
 			setMediaStream(stream)
 		})
 	}
@@ -63,6 +70,9 @@ function Recorder() {
 			mediaRecorder.stop()
 			if (mediaStream) {
 				mediaStream.getTracks().forEach((track) => track.stop())
+				setRecording(false)
+				setIsRunning(false)
+				setTime(0)
 			}
 			setRecording(false)
 			setIsRunning(false)
@@ -72,9 +82,19 @@ function Recorder() {
 
 	useEffect(() => {
 		if (recordedChunks) {
-			onSubmitVideo(recordedChunks, timeRecords)
+			// onSubmitVideo(recordedChunks, timeRecords)
+			onSubmitGetId()
 		}
 	}, [recordedChunks])
+
+	useEffect(() => {
+		console.log('folderId', folderId)
+		const usersFolderId = folderId
+		if (folderId === '') return
+		if (!recordedChunks) return
+		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
+		window.location.href = `https://test.app.qaing.co/folder/${usersFolderId}/issues`
+	}, [folderId])
 
 	//녹화 시작 정지 버튼핸들러
 	const handleStartStopClick = () => {
@@ -86,11 +106,14 @@ function Recorder() {
 		if (!recording) {
 			setTime(0)
 			setTimeRecords([])
-			handleStartStop()
 		}
 	}
 
-	const onSubmitVideo = async (blob: Blob, timeRecords: number[]) => {
+	const onSubmitVideo = async (
+		blob: Blob,
+		timeRecords: number[],
+		usersFolderId: string,
+	) => {
 		if (blob) {
 			// const blob = new Blob(recordedChunks, { type: 'video/webm' })
 			const formData = new FormData()
@@ -100,16 +123,33 @@ function Recorder() {
 			console.log('전송시작')
 
 			await axios
-				.post(`https://test.qaing.co/videos/process`, formData)
+				.put(`${baseUrl}/videos/process/${usersFolderId}`, formData, {
+					withCredentials: true,
+				})
 				.then((response) => {
-					// 서버로부터의 응답 처리
+					// // 서버로부터의 응답 처리
 					console.log(response.data)
+					// const UsersfolderId = response.data
+					// setFolderId(UsersfolderId)
 				})
 				.catch((error) => {
 					// 에러 처리
 					console.error('오류발생', error)
 				})
 		}
+	}
+
+	const onSubmitGetId = async () => {
+		await axios
+			.get(`${baseUrl}/videos/process`, {
+				withCredentials: true,
+			})
+			.then((response) => {
+				// 서버로부터의 응답 처리
+				console.log(response.data)
+				const UsersfolderId = response.data.folderId
+				setFolderId(UsersfolderId)
+			})
 	}
 
 	const handleDownloadClick = (blob: Blob) => {
@@ -135,7 +175,11 @@ function Recorder() {
 	//타이머에서 계속 시간이 증가하도록 하는 코드
 	useInterval(
 		() => {
-			setTime((prevTime) => prevTime + 1)
+			if (time >= 20) {
+				stopRecording()
+			} else {
+				setTime(time + 1)
+			}
 		},
 		isRunning ? 1000 : null,
 	)
@@ -152,6 +196,10 @@ function Recorder() {
 			}
 			return prevRecords
 		})
+		recordTimeout.current = setTimeout(() => {
+			recordTimeout.current = null
+			//setTimeRecords([])
+		}, THROTTLE_TIME)
 	}
 
 	const handleReset = () => {
@@ -175,31 +223,6 @@ function Recorder() {
 	// 		console.log('a', a)
 	// 	}
 	// }
-
-	//크롬 익스텐션이 실행 됬을 때 토큰 background.js를 이용해 chrome.cookie에서 토큰을 가져온다.
-	useEffect(() => {
-		// alert('익스텐션 시작')
-		// const currentUrl = window.location.origin
-		// console.log('currentUrl', currentUrl)
-		// console.log('currentUrl', currentUrl === 'https://app.qaing.co')
-		// chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
-		// 	if (response.accessToken) {
-		// 		setAccessToken(response.accessToken)
-		// 	}
-		// 	else {
-		// 		// alert('로그인이 필요합니다.')
-		// 		if (
-		// 			currentUrl === 'https://app.qaing.co' ||
-		// 			currentUrl === 'http://localhost:3000' ||
-		// 			currentUrl === 'https://accounts.google.com' ||
-		// 			currentUrl === 'https://test.qaing.co'
-		// 		) {
-		// 			return
-		// 		}
-		// 		window.location.href = 'https://app.qaing.co/auth/signup'
-		// 	}
-		// })
-	}, [])
 
 	const isLogin = () => {
 		const currentUrl = window.location.origin
