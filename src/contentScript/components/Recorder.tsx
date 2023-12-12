@@ -93,7 +93,7 @@ function Recorder() {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		window.location.href = `https://test.app.qaing.co/folder/${usersFolderId}/issues`
+		window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
 	}, [folderId])
 
 	//녹화 시작 정지 버튼핸들러
@@ -202,28 +202,6 @@ function Recorder() {
 		}, THROTTLE_TIME)
 	}
 
-	const handleReset = () => {
-		setTime(0)
-		setTimeRecords([])
-	}
-
-	//녹화된 비디오 다운로드 버튼 핸들러
-	// const handleDownloadClick = () => {
-	// 	// 녹화된 비디오 다운로드
-	// 	if (recordedChunks.length > 0) {
-	// 		const blob = new Blob(recordedChunks, { type: 'video/webm' })
-	// 		const url = URL.createObjectURL(blob)
-	// 		const a = document.createElement('a')
-	// 		a.href = url
-	// 		a.download = 'recorded-screen.webm'
-	// 		document.body.appendChild(a)
-	// 		a.click()
-	// 		URL.revokeObjectURL(url)
-	// 		// document.body.removeChild(a)
-	// 		console.log('a', a)
-	// 	}
-	// }
-
 	const isLogin = () => {
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
@@ -232,17 +210,19 @@ function Recorder() {
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
 				setAccessToken(response.accessToken)
-				handleStartStopClick()
+				currentUrl === 'https://app.qaing.co'
+					? handleStartStopClick()
+					: (window.location.href = 'https://app.qaing.co/home')
 			} else {
 				alert('로그인이 필요합니다.')
-				if (
-					currentUrl === 'https://app.qaing.co' ||
-					currentUrl === 'http://localhost:3000' ||
-					currentUrl === 'https://accounts.google.com' ||
-					currentUrl === 'https://test.qaing.co'
-				) {
-					return
-				}
+				// if (
+				// 	currentUrl === 'https://app.qaing.co' ||
+				// 	currentUrl === 'http://localhost:3000' ||
+				// 	currentUrl === 'https://accounts.google.com' ||
+				// 	currentUrl === 'https://test.qaing.co'
+				// ) {
+				// 	return
+				// }
 				window.location.href = 'https://app.qaing.co/auth/signup'
 			}
 		})
@@ -253,8 +233,8 @@ function Recorder() {
 	}, [accessToken])
 
 	return (
-		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] bg-white z-50">
-			<h1>Screen Recorder</h1>
+		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-50">
+			{/* <h1>Screen Recorder</h1> */}
 			<div className="flex flex-row ">
 				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
 					<div className="w-[64px] h-[64px] bg-white rounded-full flex flex-row items-center justify-center m-2">
@@ -263,7 +243,7 @@ function Recorder() {
 								className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
 								onClick={isLogin}
 							>
-								{recording ? '정지' : ''}
+								{recording ? '' : ''}
 							</button>
 						</div>
 					</div>
@@ -300,20 +280,6 @@ function Recorder() {
 						</div>
 					</div>
 				</div>
-
-				{videoURL && (
-					<>
-						<video controls src={videoURL} width="400"></video>
-						<br />
-						<button
-							type="submit"
-							className="w-[400px] h-[100px] bg-white"
-							onClick={() => handleDownloadClick}
-						>
-							전송하기
-						</button>
-					</>
-				)}
 			</div>
 		</section>
 	)
