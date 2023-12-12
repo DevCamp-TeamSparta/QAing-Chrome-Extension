@@ -1,27 +1,31 @@
 {
-  "name": "React Extension",
-  "description": "Chrome Extension in React!",
-  "version": "1.0.0",
-  "manifest_version": 3,
-  "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "React Extension",
-    "default_icon": "icon.png"
-  },
-  "permissions": ["storage"],
-  "options_page": "options.html",
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.js"]
-    }
-  ]
+	"name": "QAing - QA 화면 캡쳐 및 녹화",
+	"description": "QA 화면 녹화부터 공유까지 한 큐에, QAing",
+	"version": "1.0.0",
+	"manifest_version": 3,
+	"icons": {
+		"16": "qaingicon.png",
+		"48": "qaingicon.png",
+		"128": "qaingicon.png"
+	},
+
+	"action": {
+		"default_title": "React Extension",
+		"default_icon": "qaingicon.png"
+	},
+	"host_permissions": [
+		"http://localhost:3000/auth/google/callback",
+		"https://app.qaing.co/auth/google/callback"
+	],
+	"permissions": ["cookies", "activeTab", "scripting"],
+	"options_page": "options.html",
+	"background": {
+		"service_worker": "background.js"
+	},
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["contentScript.js"]
+		}
+	]
 }
