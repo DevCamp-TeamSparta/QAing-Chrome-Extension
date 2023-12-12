@@ -1,23 +1,23 @@
 {
-	"name": "QAing",
-	"description": "QAing",
+	"name": "QAing - QA 화면 캡쳐 및 녹화",
+	"description": "QA 화면 녹화부터 공유까지 한 큐에, QAing",
 	"version": "1.0.0",
 	"manifest_version": 3,
 	"icons": {
-		"16": "icon.png",
-		"48": "icon.png",
-		"128": "icon.png"
+		"16": "qaingicon.png",
+		"48": "qaingicon.png",
+		"128": "qaingicon.png"
 	},
 
 	"action": {
 		"default_title": "React Extension",
-		"default_icon": "icon.png"
+		"default_icon": "qaingicon.png"
 	},
 	"host_permissions": [
 		"http://localhost:3000/auth/google/callback",
 		"https://app.qaing.co/auth/google/callback"
 	],
-	"permissions": ["storage", "context", "cookies", "activeTab", "scripting"],
+	"permissions": ["cookies", "activeTab", "scripting"],
 	"options_page": "options.html",
 	"background": {
 		"service_worker": "background.js"
