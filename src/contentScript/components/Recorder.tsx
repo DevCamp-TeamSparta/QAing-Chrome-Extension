@@ -31,7 +31,7 @@ function Recorder() {
 			startRecording()
 			const timer = setTimeout(() => {
 				stopRecording()
-			}, 20000) // 20초 후에 녹화 중단
+			}, 3600000) // 1시간 후에 녹화 중단
 			return () => clearTimeout(timer)
 		} else {
 			stopRecording()
@@ -140,15 +140,19 @@ function Recorder() {
 	}
 
 	const onSubmitGetId = async () => {
+		console.log('id가져오기 시작ㄴ')
 		await axios
 			.get(`${baseUrl}/videos/process`, {
 				withCredentials: true,
 			})
 			.then((response) => {
 				// 서버로부터의 응답 처리
-				console.log(response.data)
+				console.log('응답성공', response.data)
 				const UsersfolderId = response.data.folderId
 				setFolderId(UsersfolderId)
+			})
+			.catch((error) => {
+				'몽고db id를 가져오지 못했습니다.'
 			})
 	}
 
@@ -175,7 +179,7 @@ function Recorder() {
 	//타이머에서 계속 시간이 증가하도록 하는 코드
 	useInterval(
 		() => {
-			if (time >= 20) {
+			if (time >= 3600) {
 				stopRecording()
 			} else {
 				setTime(time + 1)
@@ -212,7 +216,7 @@ function Recorder() {
 				setAccessToken(response.accessToken)
 				currentUrl === 'https://app.qaing.co'
 					? handleStartStopClick()
-					: (window.location.href = 'https://app.qaing.co/home')
+					: window.open('https://app.qaing.co/home', '_blank')
 			} else {
 				alert('로그인이 필요합니다.')
 				// if (
@@ -223,7 +227,8 @@ function Recorder() {
 				// ) {
 				// 	return
 				// }
-				window.location.href = 'https://app.qaing.co/auth/signup'
+				window.open('https://app.qaing.co/auth/signup', '_blank')
+				// window.location.href = 'https://app.qaing.co/auth/signup'
 			}
 		})
 	}
