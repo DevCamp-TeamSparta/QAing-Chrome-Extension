@@ -216,7 +216,7 @@ function Recorder() {
 				setAccessToken(response.accessToken)
 				currentUrl === 'https://app.qaing.co'
 					? handleStartStopClick()
-					: window.open('https://app.qaing.co/home', '_blank')
+					: window.open('https://test.app.qaing.co/home', '_blank')
 			} else {
 				alert('로그인이 필요합니다.')
 				// if (
