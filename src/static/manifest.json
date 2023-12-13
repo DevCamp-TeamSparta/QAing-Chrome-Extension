@@ -13,11 +13,8 @@
 		"default_title": "React Extension",
 		"default_icon": "qaingicon.png"
 	},
-	"host_permissions": [
-		"http://localhost:3000/auth/google/callback",
-		"https://app.qaing.co/auth/google/callback"
-	],
-	"permissions": ["cookies", "activeTab", "scripting"],
+	"host_permissions": ["https://*/*"],
+	"permissions": ["cookies", "tabs", "scripting", "activeTab"],
 	"options_page": "options.html",
 	"background": {
 		"service_worker": "background.js"

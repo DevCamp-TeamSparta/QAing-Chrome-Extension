@@ -22,17 +22,28 @@
 // 		// return alert('요청을 완료했습니다.')
 // 	}
 
-//아이콘 클릭시 레코더 띄우기(contentScript.js)
-chrome.action.onClicked.addListener(async (tab) => {
-	if (tab.id !== undefined) {
-		await chrome.scripting.executeScript({
-			target: { tabId: tab.id, allFrames: true },
-			files: ['contentScript.js'],
+//모든 페이지에 아이콘 클릭시 레코더 띄우기(contentScript.js)
+let isActive = false
+chrome.action.onClicked.addListener(async () => {
+	isActive = !isActive
+	if (isActive) {
+		console.log('isActive', isActive)
+		const tabs = await chrome.tabs.query({ currentWindow: true })
+		console.log(tabs)
+		tabs.forEach((item) => {
+			item.id &&
+				chrome.scripting.executeScript({
+					target: { tabId: item.id },
+					files: ['contentScript.js'],
+				})
 		})
-		// Do other stuff...
+	}
+	if (!isActive) {
+		console.log('isActive', isActive)
 	}
 })
 
+//로그인 토큰 가져오기
 const HOMEPAGE_ADDR = process.env.CHROME_EXENSION_HOMEPAGE_LOCAL || ''
 const HOMEPAGE_QAING = process.env.CHROME_EXENSION_HOMEPAGE_QAING || ''
 
@@ -55,4 +66,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	}
 
 	return true
+})
+
+//카운터
+let timer: string | number | NodeJS.Timeout | undefined
+let count = 0
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.command === 'startTimer') {
+		clearInterval(timer)
+		timer = setInterval(() => {
+			count++
+			chrome.tabs.query({}, (tabs) => {
+				tabs.forEach((tab) => {
+					tab.id && chrome.tabs.sendMessage(tab.id, { time: count })
+				})
+			})
+		}, 1000)
+	} else if (request.command === 'stopTimer') {
+		clearInterval(timer)
+		count = 0
+	}
 })

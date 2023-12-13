@@ -177,16 +177,41 @@ function Recorder() {
 	}, [timeRecords])
 
 	//타이머에서 계속 시간이 증가하도록 하는 코드
-	useInterval(
-		() => {
-			if (time >= 3600) {
-				stopRecording()
-			} else {
-				setTime(time + 1)
+	// useInterval(
+	// 	() => {
+	// 		if (time >= 3600) {
+	// 			stopRecording()
+	// 		} else {
+	// 			setTime(time + 1)
+	// 		}
+	// 	},
+	// 	isRunning ? 1000 : null,
+	// )
+
+	useEffect(() => {
+		const handleMessage = (request: {
+			time: React.SetStateAction<number> | undefined
+		}) => {
+			if (request.time !== undefined) {
+				setTime(request.time)
 			}
-		},
-		isRunning ? 1000 : null,
-	)
+		}
+
+		chrome.runtime.onMessage.addListener(handleMessage)
+
+		return () => {
+			chrome.runtime.onMessage.removeListener(handleMessage)
+		}
+	}, [])
+
+	const startTimer = () => {
+		chrome.runtime.sendMessage({ command: 'startTimer' })
+	}
+
+	const stopTimer = () => {
+		chrome.runtime.sendMessage({ command: 'stopTimer' })
+		setTime(0)
+	}
 
 	const handleStartStop = () => {
 		setIsRunning((prevIsRunning) => !prevIsRunning)
@@ -238,7 +263,7 @@ function Recorder() {
 	}, [accessToken])
 
 	return (
-		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-50">
+		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-101">
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="flex flex-row ">
 				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
@@ -284,6 +309,10 @@ function Recorder() {
 							</div>
 						</div>
 					</div>
+				</div>
+				<div className="bg-white w-[200px] h-[200px]">
+					<button onClick={startTimer}>Start </button>
+					<button onClick={stopTimer}>Stop </button>
 				</div>
 			</div>
 		</section>

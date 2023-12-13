@@ -13,6 +13,10 @@ module.exports = {
 			__dirname,
 			'src/contentScript/contentScript.tsx',
 		),
+		constScriptNone: path.resolve(
+			__dirname,
+			'src/contentScriptNone/contentScriptNone.tsx',
+		),
 	},
 	module: {
 		rules: [
