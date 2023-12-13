@@ -214,7 +214,7 @@ function Recorder() {
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
 				setAccessToken(response.accessToken)
-				currentUrl === 'https://app.qaing.co'
+				currentUrl === 'https://test.app.qaing.co'
 					? handleStartStopClick()
 					: window.open('https://test.app.qaing.co/home', '_blank')
 			} else {
@@ -227,7 +227,7 @@ function Recorder() {
 				// ) {
 				// 	return
 				// }
-				window.open('https://app.qaing.co/auth/signup', '_blank')
+				window.open('https://test.app.qaing.co/auth/signup', '_blank')
 				// window.location.href = 'https://app.qaing.co/auth/signup'
 			}
 		})
