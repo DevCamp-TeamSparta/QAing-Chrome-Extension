@@ -93,7 +93,7 @@ function Recorder() {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
+		window.location.href = `https://test.app.qaing.co/folder/${usersFolderId}/issues`
 	}, [folderId])
 
 	//녹화 시작 정지 버튼핸들러
@@ -209,7 +209,7 @@ function Recorder() {
 	const isLogin = () => {
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
-		console.log('currentUrl', currentUrl === 'https://app.qaing.co')
+		console.log('currentUrl', currentUrl === 'https://test.app.qaing.co')
 
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
