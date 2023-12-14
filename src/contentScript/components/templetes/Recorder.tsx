@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { useInterval } from '../hooks/useInterval'
+import { useInterval } from '../../hooks/useInterval'
 import React from 'react'
 
 function Recorder() {
@@ -20,6 +20,9 @@ function Recorder() {
 
 	//유적 FolderID
 	const [folderId, setFolderId] = useState<string>('')
+
+	//익스텐션 Acitve && inAcitvie
+	const [extensionIsActive, setExtensionIsActive] = useState<boolean>(true)
 
 	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
 
@@ -204,6 +207,25 @@ function Recorder() {
 		}
 	}, [])
 
+	useEffect(() => {
+		const getIsActiveMessage = (request: any) => {
+			if (request.extensionIsActive !== undefined) {
+				setExtensionIsActive(request.extensionIsActive)
+				console.log('extensionIsActive 수신완료')
+			}
+		}
+		chrome.runtime.onMessage.addListener(getIsActiveMessage)
+
+		return () => {
+			chrome.runtime.onMessage.removeListener(getIsActiveMessage)
+		}
+	}, [])
+
+	// extensionIsActive 확인
+	useEffect(() => {
+		console.log('extensionIsActive', extensionIsActive)
+	}, [extensionIsActive])
+
 	const startTimer = () => {
 		chrome.runtime.sendMessage({ command: 'startTimer' })
 	}
@@ -242,7 +264,8 @@ function Recorder() {
 				currentUrl === 'https://app.qaing.co'
 					? handleStartStopClick()
 					: window.open('https://app.qaing.co/home', '_blank')
-			} else {
+			}
+			if (!response.accessToken) {
 				alert('로그인이 필요합니다.')
 				// if (
 				// 	currentUrl === 'https://app.qaing.co' ||
@@ -262,7 +285,7 @@ function Recorder() {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
 
-	return (
+	return extensionIsActive === true ? (
 		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-101">
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="flex flex-row ">
@@ -280,11 +303,6 @@ function Recorder() {
 					<div className="flex flex-row items-center justify-center">
 						<div className="bg-white rounded-full w-[155.4px] h-[63.5px]">
 							<div className="flex flex-row items-center justify-evenly h-full">
-								{/* <img
-              src='icon.png'
-              alt='save'
-              // className=' w-[20px] h-[27.5px]'
-            /> */}
 								<svg
 									width="19.4"
 									height="27.5"
@@ -316,6 +334,8 @@ function Recorder() {
 				</div>
 			</div>
 		</section>
+	) : (
+		<div></div>
 	)
 }
 

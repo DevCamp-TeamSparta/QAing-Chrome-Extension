@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.h1 {
+	@apply font-semibold text-[32px]  leading-[44px];
+}
+.h2 {
+	@apply font-semibold text-[28px]  leading-[36px];
+}
+.h3 {
+	@apply font-bold text-[24px] leading-8;
+}
+.h4 {
+	@apply font-medium text-[24px] leading-8;
+}
+.t1 {
+	@apply font-bold text-[20px] leading-[26px];
+}
+.t2 {
+	@apply font-medium text-[20px] leading-[26px];
+}
+.t3 {
+	@apply font-bold text-[18px] leading-5;
+}
+.b1 {
+	@apply font-bold text-[16px] leading-[24px];
+}
+.b2 {
+	@apply font-medium text-[16px] leading-[24px];
+}
+.b3 {
+	@apply font-bold text-[14px] leading-[20px];
+}
+.b4 {
+	@apply font-medium text-[14px] leading-[20px];
+}
+
+.dimmed {
+	@apply bg-extra-black opacity-30;
+}
+
+button {
+	cursor: pointer;
+}
+
+input:focus,
+textarea:focus {
+	outline: none;
+}

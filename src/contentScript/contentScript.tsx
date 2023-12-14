@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import '../style/input.css'
-import Recorder from './components/Recorder'
+import Recorder from './components/templetes/Recorder'
 
 const App: React.FC<Record<string, never>> = () => {
 	return (

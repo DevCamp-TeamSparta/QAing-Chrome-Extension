@@ -39,11 +39,15 @@ chrome.action.onClicked.addListener(async () => {
 		})
 	}
 	if (!isActive) {
-		console.log('isActive', isActive)
-		tabs.forEach((item) => {
-			if (item.id) {
-				chrome.tabs.sendMessage(item.id, { action: 'deactivate' })
-			}
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				console.log('fals tabs', tab)
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
 		})
 	}
 })
