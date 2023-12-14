@@ -26,23 +26,54 @@
 let isActive = false
 chrome.action.onClicked.addListener(async () => {
 	isActive = !isActive
-	const tabs = await chrome.tabs.query({ currentWindow: true })
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	if (isActive) {
 		console.log('isActive', isActive)
 		console.log(tabs)
-		tabs.forEach((item) => {
-			item.id &&
-				chrome.scripting.executeScript({
-					target: { tabId: item.id },
-					files: ['contentScript.js'],
-				})
-		})
+		if (tabs.length > 0 && tabs[0].id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
 	}
 	if (!isActive) {
 		console.log('isActive false', isActive)
 		chrome.tabs.query({}, function (tabs) {
 			tabs.forEach(function (tab) {
-				console.log('fals tabs', tab)
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
+		})
+	}
+})
+
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// 	if (request.command === 'deActive') {
+// 		console.log('deActive')
+// 		isActive = !isActive
+// 	}
+// })
+
+//탭활성화시 보낼 메세지
+chrome.tabs.onActivated.addListener(async function (tab) {
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	if (isActive) {
+		console.log('isActive', isActive)
+		console.log(tabs)
+		if (tabs.length > 0 && tabs[0].id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
+	}
+	if (!isActive) {
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
 				tab.id &&
 					chrome.tabs
 						.sendMessage(tab.id, { extensionIsActive: false })

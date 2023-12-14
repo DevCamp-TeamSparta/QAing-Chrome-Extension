@@ -212,6 +212,8 @@ function Recorder() {
 			if (request.extensionIsActive !== undefined) {
 				setExtensionIsActive(request.extensionIsActive)
 				console.log('extensionIsActive 수신완료')
+				// console.log('deacive')
+				// chrome.runtime.sendMessage({ command: 'deActive' })
 			}
 		}
 		chrome.runtime.onMessage.addListener(getIsActiveMessage)
