@@ -26,9 +26,9 @@
 let isActive = false
 chrome.action.onClicked.addListener(async () => {
 	isActive = !isActive
+	const tabs = await chrome.tabs.query({ currentWindow: true })
 	if (isActive) {
 		console.log('isActive', isActive)
-		const tabs = await chrome.tabs.query({ currentWindow: true })
 		console.log(tabs)
 		tabs.forEach((item) => {
 			item.id &&
@@ -40,6 +40,11 @@ chrome.action.onClicked.addListener(async () => {
 	}
 	if (!isActive) {
 		console.log('isActive', isActive)
+		tabs.forEach((item) => {
+			if (item.id) {
+				chrome.tabs.sendMessage(item.id, { action: 'deactivate' })
+			}
+		})
 	}
 })
 
