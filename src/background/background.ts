@@ -58,6 +58,34 @@ chrome.action.onClicked.addListener(async () => {
 // })
 
 //탭활성화시 보낼 메세지
+
+chrome.tabs.onUpdated.addListener(async function (tab) {
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	if (isActive) {
+		console.log('isActive', isActive)
+		console.log(tabs)
+		if (tabs.length > 0 && tabs[0].id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
+	}
+	if (!isActive) {
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
+		})
+	}
+})
+
+// chrome.tabs.onCreated.addListener(async function (tab) {})
+
 chrome.tabs.onActivated.addListener(async function (tab) {
 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	if (isActive) {
