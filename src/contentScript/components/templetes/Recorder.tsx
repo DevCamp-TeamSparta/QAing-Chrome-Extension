@@ -258,14 +258,14 @@ function Recorder() {
 	const isLogin = () => {
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
-		console.log('currentUrl', currentUrl === 'https://app.qaing.co')
+		console.log('currentUrl', currentUrl === 'https://test.app.qaing.co')
 
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
 				setAccessToken(response.accessToken)
-				currentUrl === 'https://app.qaing.co'
-					? handleStartStopClick()
-					: window.open('https://app.qaing.co/home', '_blank')
+				handleStartStopClick()
+				// currentUrl === 'https://test.app.qaing.co' ? handleStartStopClick() : ''
+				// : window.open('https://app.qaing.co/home', '_blank')
 			}
 			if (!response.accessToken) {
 				alert('로그인이 필요합니다.')
@@ -277,7 +277,7 @@ function Recorder() {
 				// ) {
 				// 	return
 				// }
-				window.open('https://app.qaing.co/auth/signup', '_blank')
+				window.open('https://test.app.qaing.co/auth/signup', '_blank')
 				// window.location.href = 'https://app.qaing.co/auth/signup'
 			}
 		})
