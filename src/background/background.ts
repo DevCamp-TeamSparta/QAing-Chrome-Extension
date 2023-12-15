@@ -22,17 +22,96 @@
 // 		// return alert('요청을 완료했습니다.')
 // 	}
 
-//아이콘 클릭시 레코더 띄우기(contentScript.js)
-chrome.action.onClicked.addListener(async (tab) => {
-	if (tab.id !== undefined) {
-		await chrome.scripting.executeScript({
-			target: { tabId: tab.id, allFrames: true },
-			files: ['contentScript.js'],
+//모든 페이지에 아이콘 클릭시 레코더 띄우기(contentScript.js)
+let isActive = false
+chrome.action.onClicked.addListener(async () => {
+	isActive = !isActive
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	if (isActive) {
+		console.log('isActive', isActive)
+		console.log(tabs)
+		if (tabs.length > 0 && tabs[0].id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
+	}
+	if (!isActive) {
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
 		})
-		// Do other stuff...
 	}
 })
 
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// 	if (request.command === 'deActive') {
+// 		console.log('deActive')
+// 		isActive = !isActive
+// 	}
+// })
+
+//탭활성화시 보낼 메세지
+
+chrome.tabs.onUpdated.addListener(async function (tab) {
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	if (isActive) {
+		console.log('isActive', isActive)
+		console.log(tabs)
+		if (tabs.length > 0 && tabs[0].id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
+	}
+	if (!isActive) {
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
+		})
+	}
+})
+
+// chrome.tabs.onCreated.addListener(async function (tab) {})
+
+chrome.tabs.onActivated.addListener(async function (tab) {
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	if (isActive) {
+		console.log('isActive', isActive)
+		console.log(tabs)
+		if (tabs.length > 0 && tabs[0].id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
+	}
+	if (!isActive) {
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
+		})
+	}
+})
+
+//로그인 토큰 가져오기
 const HOMEPAGE_ADDR = process.env.CHROME_EXENSION_HOMEPAGE_LOCAL || ''
 const HOMEPAGE_QAING = process.env.CHROME_EXENSION_HOMEPAGE_QAING || ''
 
@@ -55,4 +134,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	}
 
 	return true
+})
+
+//카운터
+let timer: string | number | NodeJS.Timeout | undefined
+let count = 0
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.command === 'startTimer') {
+		clearInterval(timer)
+		timer = setInterval(() => {
+			count++
+			chrome.tabs.query({}, (tabs) => {
+				tabs.forEach((tab) => {
+					tab.id && chrome.tabs.sendMessage(tab.id, { time: count })
+				})
+			})
+		}, 1000)
+	} else if (request.command === 'stopTimer') {
+		clearInterval(timer)
+		count = 0
+	}
 })

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { useInterval } from '../hooks/useInterval'
+import { useInterval } from '../../hooks/useInterval'
 import React from 'react'
 
 function Recorder() {
@@ -20,6 +20,9 @@ function Recorder() {
 
 	//유적 FolderID
 	const [folderId, setFolderId] = useState<string>('')
+
+	//익스텐션 Acitve && inAcitvie
+	const [extensionIsActive, setExtensionIsActive] = useState<boolean>(true)
 
 	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
 
@@ -177,16 +180,62 @@ function Recorder() {
 	}, [timeRecords])
 
 	//타이머에서 계속 시간이 증가하도록 하는 코드
-	useInterval(
-		() => {
-			if (time >= 3600) {
-				stopRecording()
-			} else {
-				setTime(time + 1)
+	// useInterval(
+	// 	() => {
+	// 		if (time >= 3600) {
+	// 			stopRecording()
+	// 		} else {
+	// 			setTime(time + 1)
+	// 		}
+	// 	},
+	// 	isRunning ? 1000 : null,
+	// )
+
+	useEffect(() => {
+		const handleMessage = (request: {
+			time: React.SetStateAction<number> | undefined
+		}) => {
+			if (request.time !== undefined) {
+				setTime(request.time)
 			}
-		},
-		isRunning ? 1000 : null,
-	)
+		}
+
+		chrome.runtime.onMessage.addListener(handleMessage)
+
+		return () => {
+			chrome.runtime.onMessage.removeListener(handleMessage)
+		}
+	}, [])
+
+	useEffect(() => {
+		const getIsActiveMessage = (request: any) => {
+			if (request.extensionIsActive !== undefined) {
+				setExtensionIsActive(request.extensionIsActive)
+				console.log('extensionIsActive 수신완료')
+				// console.log('deacive')
+				// chrome.runtime.sendMessage({ command: 'deActive' })
+			}
+		}
+		chrome.runtime.onMessage.addListener(getIsActiveMessage)
+
+		return () => {
+			chrome.runtime.onMessage.removeListener(getIsActiveMessage)
+		}
+	}, [])
+
+	// extensionIsActive 확인
+	useEffect(() => {
+		console.log('extensionIsActive', extensionIsActive)
+	}, [extensionIsActive])
+
+	const startTimer = () => {
+		chrome.runtime.sendMessage({ command: 'startTimer' })
+	}
+
+	const stopTimer = () => {
+		chrome.runtime.sendMessage({ command: 'stopTimer' })
+		setTime(0)
+	}
 
 	const handleStartStop = () => {
 		setIsRunning((prevIsRunning) => !prevIsRunning)
@@ -209,15 +258,16 @@ function Recorder() {
 	const isLogin = () => {
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
-		console.log('currentUrl', currentUrl === 'https://app.qaing.co')
+		console.log('currentUrl', currentUrl === 'https://test.app.qaing.co')
 
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
 				setAccessToken(response.accessToken)
-				currentUrl === 'https://app.qaing.co'
-					? handleStartStopClick()
-					: window.open('https://app.qaing.co/home', '_blank')
-			} else {
+				handleStartStopClick()
+				// currentUrl === 'https://test.app.qaing.co' ? handleStartStopClick() : ''
+				// : window.open('https://app.qaing.co/home', '_blank')
+			}
+			if (!response.accessToken) {
 				alert('로그인이 필요합니다.')
 				// if (
 				// 	currentUrl === 'https://app.qaing.co' ||
@@ -227,7 +277,7 @@ function Recorder() {
 				// ) {
 				// 	return
 				// }
-				window.open('https://app.qaing.co/auth/signup', '_blank')
+				window.open('https://test.app.qaing.co/auth/signup', '_blank')
 				// window.location.href = 'https://app.qaing.co/auth/signup'
 			}
 		})
@@ -237,8 +287,8 @@ function Recorder() {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
 
-	return (
-		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-50">
+	return extensionIsActive === true ? (
+		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-101">
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="flex flex-row ">
 				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
@@ -255,11 +305,6 @@ function Recorder() {
 					<div className="flex flex-row items-center justify-center">
 						<div className="bg-white rounded-full w-[155.4px] h-[63.5px]">
 							<div className="flex flex-row items-center justify-evenly h-full">
-								{/* <img
-              src='icon.png'
-              alt='save'
-              // className=' w-[20px] h-[27.5px]'
-            /> */}
 								<svg
 									width="19.4"
 									height="27.5"
@@ -285,8 +330,14 @@ function Recorder() {
 						</div>
 					</div>
 				</div>
+				<div className="bg-white w-[200px] h-[200px]">
+					<button onClick={startTimer}>Start </button>
+					<button onClick={stopTimer}>Stop </button>
+				</div>
 			</div>
 		</section>
+	) : (
+		<div></div>
 	)
 }
 
