@@ -159,21 +159,21 @@ function Recorder() {
 			})
 	}
 
-	const handleDownloadClick = (blob: Blob) => {
-		// 녹화된 비디오 다운로드
-		if (recordedChunks) {
-			console.log('비디오 다운로드 준비완료')
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = 'recorded-screen.webm'
-			document.body.appendChild(a)
-			a.click()
-			URL.revokeObjectURL(url)
-			document.body.removeChild(a)
-			console.log('다운 가자!')
-		}
-	}
+	// const handleDownloadClick = (blob: Blob) => {
+	// 	// 녹화된 비디오 다운로드
+	// 	if (recordedChunks) {
+	// 		console.log('비디오 다운로드 준비완료')
+	// 		const url = URL.createObjectURL(blob)
+	// 		const a = document.createElement('a')
+	// 		a.href = url
+	// 		a.download = 'recorded-screen.webm'
+	// 		document.body.appendChild(a)
+	// 		a.click()
+	// 		URL.revokeObjectURL(url)
+	// 		document.body.removeChild(a)
+	// 		console.log('다운 가자!')
+	// 	}
+	// }
 
 	useEffect(() => {
 		console.log('timeRecords', timeRecords)
