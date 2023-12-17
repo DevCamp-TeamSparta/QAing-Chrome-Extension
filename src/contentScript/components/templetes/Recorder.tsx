@@ -287,6 +287,35 @@ function Recorder() {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
 
+	const [isPlaying, setIsPlaying] = useState<boolean>(false)
+	const startRecordingState = () => {
+		chrome.storage.local.set({ isPlaying: true })
+		setIsPlaying(true)
+		startRecording()
+		console.log(isPlaying, 'startbutton')
+		// startTimer()
+	}
+
+	const stopRecordingState = () => {
+		chrome.storage.local.set({ isPlaying: false })
+		setIsPlaying(false)
+		console.log(isPlaying, 'stoptbutton')
+		// setRecording((prev) => !prev)
+		try {
+			stopRecording()
+		} catch (error) {
+			console.error('stopRecording 함수에서 오류가 발생했습니다:', error)
+		}
+		// stopTimer()
+	}
+
+	useEffect(() => {
+		chrome.storage.local.get('isPlaying', function (data) {
+			console.log(data.isPlaying) // "value"
+			setIsPlaying(data.isPlaying)
+		})
+	})
+
 	return extensionIsActive === true ? (
 		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-101">
 			{/* <h1>Screen Recorder</h1> */}
@@ -294,12 +323,21 @@ function Recorder() {
 				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
 					<div className="w-[64px] h-[64px] bg-white rounded-full flex flex-row items-center justify-center m-2">
 						<div className="flex flex-row items-center justify-center ">
-							<button
-								className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
-								onClick={isLogin}
-							>
-								{recording ? '' : ''}
-							</button>
+							{isPlaying ? (
+								<button
+									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
+									onClick={stopRecordingState}
+								>
+									정지
+								</button>
+							) : (
+								<button
+									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-[99px]"
+									onClick={startRecordingState}
+								>
+									시작
+								</button>
+							)}
 						</div>
 					</div>
 					<div className="flex flex-row items-center justify-center">

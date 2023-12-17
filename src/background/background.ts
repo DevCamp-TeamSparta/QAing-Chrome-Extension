@@ -23,24 +23,53 @@
 // 	}
 
 //모든 페이지에 아이콘 클릭시 레코더 띄우기(contentScript.js)
+// let isActive = false
+// chrome.action.onClicked.addListener(async () => {
+// 	isActive = !isActive
+// 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+// 	if (isActive) {
+// 		console.log('isActive', isActive)
+// 		console.log(tabs)
+// 		if (tabs.length > 0 && tabs[0].id) {
+// 			chrome.scripting.executeScript({
+// 				target: { tabId: tabs[0].id },
+// 				files: ['contentScript.js'],
+// 			})
+// 		}
+// 	}
+// 	if (!isActive) {
+// 		console.log('isActive false', isActive)
+// 		chrome.tabs.query({}, function (tabs) {
+// 			tabs.forEach(function (tab) {
+// 				tab.id &&
+// 					chrome.tabs
+// 						.sendMessage(tab.id, { extensionIsActive: false })
+// 						.catch((err) => console.error(err))
+// 			})
+// 		})
+// 	}
+// })
+
 let isActive = false
 chrome.action.onClicked.addListener(async () => {
 	isActive = !isActive
-	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	const tabs = await chrome.tabs.query({ currentWindow: true })
 	if (isActive) {
 		console.log('isActive', isActive)
 		console.log(tabs)
-		if (tabs.length > 0 && tabs[0].id) {
-			chrome.scripting.executeScript({
-				target: { tabId: tabs[0].id },
-				files: ['contentScript.js'],
-			})
-		}
+		tabs.forEach((item) => {
+			item.id &&
+				chrome.scripting.executeScript({
+					target: { tabId: item.id },
+					files: ['contentScript.js'],
+				})
+		})
 	}
 	if (!isActive) {
 		console.log('isActive false', isActive)
 		chrome.tabs.query({}, function (tabs) {
 			tabs.forEach(function (tab) {
+				console.log('fals tabs', tab)
 				tab.id &&
 					chrome.tabs
 						.sendMessage(tab.id, { extensionIsActive: false })
@@ -71,17 +100,17 @@ chrome.tabs.onUpdated.addListener(async function (tab) {
 			})
 		}
 	}
-	if (!isActive) {
-		console.log('isActive false', isActive)
-		chrome.tabs.query({}, function (tabs) {
-			tabs.forEach(function (tab) {
-				tab.id &&
-					chrome.tabs
-						.sendMessage(tab.id, { extensionIsActive: false })
-						.catch((err) => console.error(err))
-			})
-		})
-	}
+	// if (!isActive) {
+	// 	console.log('isActive false', isActive)
+	// 	chrome.tabs.query({}, function (tabs) {
+	// 		tabs.forEach(function (tab) {
+	// 			tab.id &&
+	// 				chrome.tabs
+	// 					.sendMessage(tab.id, { extensionIsActive: false })
+	// 					.catch((err) => console.error(err))
+	// 		})
+	// 	})
+	// }
 })
 
 // chrome.tabs.onCreated.addListener(async function (tab) {})
