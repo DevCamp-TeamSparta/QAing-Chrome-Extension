@@ -143,7 +143,7 @@ function Recorder() {
 	}
 
 	const onSubmitGetId = async () => {
-		console.log('id가져오기 시작ㄴ')
+		console.log('id가져오기 시작')
 		await axios
 			.get(`${baseUrl}/videos/process`, {
 				withCredentials: true,
@@ -283,8 +283,39 @@ function Recorder() {
 		})
 	}
 
+	const [isPlaying, setIsPlaying] = useState<boolean>(false)
+	const startRecordingState = () => {
+		chrome.storage.local.set({ isPlaying: true })
+		setIsPlaying(true)
+		console.log(isPlaying, 'startbutton')
+	}
+
+	const stopRecordingState = () => {
+		chrome.storage.local.set({ isPlaying: false })
+		setIsPlaying(false)
+		console.log(isPlaying, 'stoptbutton')
+		chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
+
+		// setRecording((prev) => !prev)
+		try {
+			stopRecording()
+		} catch (error) {
+			console.error('stopRecording 함수에서 오류가 발생했습니다:', error)
+		}
+		// stopTimer()
+	}
+
+	useEffect(() => {
+		chrome.storage.local.get('isPlaying', function (data) {
+			console.log(data.isPlaying) // "value"
+			setIsPlaying(data.isPlaying)
+		})
+	})
+
 	const moveOptionPage = () => {
-		chrome.runtime.openOptionsPage()
+		startRecordingState()
+		chrome.runtime.sendMessage({ action: 'createAndMoveTab' })
+		// startTimer()
 	}
 
 	useEffect(() => {
@@ -298,12 +329,21 @@ function Recorder() {
 				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
 					<div className="w-[64px] h-[64px] bg-white rounded-full flex flex-row items-center justify-center m-2">
 						<div className="flex flex-row items-center justify-center ">
-							<button
-								className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
-								onClick={isLogin}
-							>
-								{recording ? '' : ''}
-							</button>
+							{isPlaying ? (
+								<button
+									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
+									onClick={stopRecordingState}
+								>
+									정지
+								</button>
+							) : (
+								<button
+									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-[99px]"
+									onClick={moveOptionPage}
+								>
+									시작
+								</button>
+							)}
 						</div>
 					</div>
 					<div className="flex flex-row items-center justify-center">

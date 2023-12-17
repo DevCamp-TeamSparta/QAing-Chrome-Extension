@@ -156,3 +156,39 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		count = 0
 	}
 })
+
+// 시작 버튼을 누르면 options페이지로 이동
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	if (request.action === 'createAndMoveTab') {
+		chrome.tabs.create({ url: 'options.html' }, function (newTab) {
+			newTab.id && chrome.tabs.move(newTab.id, { index: 0 })
+		})
+	}
+})
+
+// 종료 버튼을 누르면 contentScript에서 options페이지로 이동
+chrome.runtime.onMessage.addListener(
+	async function (request, sender, sendResponse) {
+		// const tabs = await chrome.tabs.query({ currentWindow: true })
+
+		if (request.action === 'stopRecordingToBackgournd') {
+			// chrome.runtime.sendMessage({ action: 'stopRecordingToOptions' })
+			// tabs[0].id &&
+			// 	chrome.tabs.sendMessage(tabs[0].id, {
+			// 		action: 'stopRecordingToOptions',
+			// 	})
+			console.log('stopRecordingToBackgournd')
+			chrome.tabs.query(
+				{ url: chrome.runtime.getURL('options.html') },
+				function (tabs) {
+					// 옵션 페이지 탭이 열려 있으면 메시지 전송
+					console.log('stopRecordingToBackgournd tabs', tabs)
+					tabs[0].id &&
+						chrome.tabs.sendMessage(tabs[0].id, {
+							action: 'stopRecordingToOptions',
+						})
+				},
+			)
+		}
+	},
+)

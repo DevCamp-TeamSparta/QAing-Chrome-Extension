@@ -14,7 +14,7 @@
 		"default_icon": "qaingicon.png"
 	},
 	"host_permissions": ["https://*/*"],
-	"permissions": ["cookies", "tabs", "scripting", "activeTab"],
+	"permissions": ["cookies", "tabs", "scripting", "activeTab", "storage"],
 	"options_page": "options.html",
 	"background": {
 		"service_worker": "background.js"
