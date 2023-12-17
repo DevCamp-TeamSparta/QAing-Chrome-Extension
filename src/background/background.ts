@@ -137,25 +137,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 })
 
 //카운터
-let timer: string | number | NodeJS.Timeout | undefined
-let count = 0
+// let timer: string | number | NodeJS.Timeout | undefined
+// let count = 0
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.command === 'startTimer') {
-		clearInterval(timer)
-		timer = setInterval(() => {
-			count++
-			chrome.tabs.query({}, (tabs) => {
-				tabs.forEach((tab) => {
-					tab.id && chrome.tabs.sendMessage(tab.id, { time: count })
-				})
-			})
-		}, 1000)
-	} else if (request.command === 'stopTimer') {
-		clearInterval(timer)
-		count = 0
-	}
-})
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// 	if (request.command === 'startTimer') {
+// 		clearInterval(timer)
+// 		timer = setInterval(() => {
+// 			count++
+// 			chrome.tabs.query({}, (tabs) => {
+// 				tabs.forEach((tab) => {
+// 					tab.id && chrome.tabs.sendMessage(tab.id, { time: count })
+// 				})
+// 			})
+// 		}, 1000)
+// 	} else if (request.command === 'stopTimer') {
+// 		clearInterval(timer)
+// 		count = 0
+// 	}
+// })
 
 // 시작 버튼을 누르면 options페이지로 이동
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -169,14 +169,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 // 종료 버튼을 누르면 contentScript에서 options페이지로 이동
 chrome.runtime.onMessage.addListener(
 	async function (request, sender, sendResponse) {
-		// const tabs = await chrome.tabs.query({ currentWindow: true })
-
 		if (request.action === 'stopRecordingToBackgournd') {
-			// chrome.runtime.sendMessage({ action: 'stopRecordingToOptions' })
-			// tabs[0].id &&
-			// 	chrome.tabs.sendMessage(tabs[0].id, {
-			// 		action: 'stopRecordingToOptions',
-			// 	})
 			console.log('stopRecordingToBackgournd')
 			chrome.tabs.query(
 				{ url: chrome.runtime.getURL('options.html') },
@@ -186,9 +179,86 @@ chrome.runtime.onMessage.addListener(
 					tabs[0].id &&
 						chrome.tabs.sendMessage(tabs[0].id, {
 							action: 'stopRecordingToOptions',
+							timeRecords: timeRecords,
 						})
 				},
 			)
 		}
 	},
 )
+
+let isRecording = false
+let timer = 0
+let timerInterval: NodeJS.Timeout | null = null
+let timeRecords: number[] = [] // 타임코드 배열 타입 명시
+let timeRecordsCount: number
+// 'toggleRecording' 및 'saveIssue' 메시지 처리
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	if (request.action === 'toggleRecording') {
+		isRecording = !isRecording
+		if (isRecording) {
+			timer = 0
+			startTimer()
+		} else {
+			stopTimer()
+			updateTabsWithTimeRecords()
+		}
+		return true // 비동기 응답을 위해 true 반환
+	}
+	//이슈 저장 시간 기록
+	if (request.action === 'saveIssue' && isRecording) {
+		const lastRecord = timeRecords[timeRecords.length - 1]
+		if (lastRecord === undefined || request.time - lastRecord >= 1) {
+			timeRecords.push(request.time) // 녹화 중 이슈 저장 시간 기록
+			updateTabsWithTimeRecords()
+		} // 모든 탭에 시간 기록 업데이트
+	}
+})
+
+// ts를 모든 탭에 전송하는 함수
+function updateTabsWithTimeRecords() {
+	chrome.tabs.query({}, function (tabs) {
+		tabs.forEach(function (tab) {
+			if (tab.id !== undefined) {
+				chrome.tabs.sendMessage(tab.id, {
+					action: 'updateTimeRecords',
+					timeRecords: timeRecords,
+					timeRecordsCount: timeRecords.length,
+				})
+			}
+		})
+	})
+}
+
+// 탭 업데이트 함수
+function updateTabs() {
+	chrome.tabs.query({}, function (tabs) {
+		tabs.forEach(function (tab) {
+			if (tab.id !== undefined) {
+				chrome.tabs.sendMessage(tab.id, {
+					action: 'updateState',
+					isRecording: isRecording,
+					timer: timer,
+				})
+			}
+		})
+	})
+}
+
+// 타이머 시작 함수
+function startTimer() {
+	timerInterval = setInterval(() => {
+		timer++
+		updateTabs() // 모든 탭에 타이머 업데이트
+	}, 1000)
+}
+
+// 타이머 정지 함수
+function stopTimer() {
+	if (timerInterval) {
+		clearInterval(timerInterval)
+		timerInterval = null
+	}
+	timer = 0
+	updateTabs() // 모든 탭에 타이머 리셋
+}

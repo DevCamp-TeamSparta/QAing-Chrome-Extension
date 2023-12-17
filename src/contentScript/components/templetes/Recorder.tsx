@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { useInterval } from '../../hooks/useInterval'
 import React from 'react'
+import StartButton from '../atoms/RecorderStartButtonAtoms/index'
+import StopButton from '../atoms/RecorderStopButtonAtoms'
 
 function Recorder() {
 	const [recording, setRecording] = useState(false)
@@ -15,6 +16,7 @@ function Recorder() {
 	//타이머
 	const [time, setTime] = useState<number>(0)
 	const [isRunning, setIsRunning] = useState<boolean>(false)
+	const [timeRecordsCount, setTimeRecordsCount] = useState<number>(0)
 	const [timeRecords, setTimeRecords] = useState<number[]>([])
 	const THROTTLE_TIME = 1000
 
@@ -159,53 +161,32 @@ function Recorder() {
 			})
 	}
 
-	// const handleDownloadClick = (blob: Blob) => {
-	// 	// 녹화된 비디오 다운로드
-	// 	if (recordedChunks) {
-	// 		console.log('비디오 다운로드 준비완료')
-	// 		const url = URL.createObjectURL(blob)
-	// 		const a = document.createElement('a')
-	// 		a.href = url
-	// 		a.download = 'recorded-screen.webm'
-	// 		document.body.appendChild(a)
-	// 		a.click()
-	// 		URL.revokeObjectURL(url)
-	// 		document.body.removeChild(a)
-	// 		console.log('다운 가자!')
-	// 	}
-	// }
-
 	useEffect(() => {
 		console.log('timeRecords', timeRecords)
 	}, [timeRecords])
 
-	//타이머에서 계속 시간이 증가하도록 하는 코드
-	// useInterval(
-	// 	() => {
-	// 		if (time >= 3600) {
-	// 			stopRecording()
-	// 		} else {
-	// 			setTime(time + 1)
-	// 		}
-	// 	},
-	// 	isRunning ? 1000 : null,
-	// )
-
+	// background에서 타이머와 타임기록을 받아오는 코드
 	useEffect(() => {
-		const handleMessage = (request: {
-			time: React.SetStateAction<number> | undefined
-		}) => {
-			if (request.time !== undefined) {
-				setTime(request.time)
+		const receiveTimeRecords = (request: any) => {
+			if (request.action === 'updateState') {
+				setTime(request.timer)
+				setIsRunning(request.isRecording)
+			}
+			if (request.action === 'updateTimeRecords') {
+				setTimeRecords(request.timeRecords)
+				setTimeRecordsCount(request.timeRecordsCount)
 			}
 		}
-
-		chrome.runtime.onMessage.addListener(handleMessage)
-
+		chrome.runtime.onMessage.addListener(receiveTimeRecords)
 		return () => {
-			chrome.runtime.onMessage.removeListener(handleMessage)
+			chrome.runtime.onMessage.addListener(receiveTimeRecords)
 		}
 	}, [])
+
+	const handleRecordTime = () => {
+		const roundedTime = Math.floor(time)
+		chrome.runtime.sendMessage({ action: 'saveIssue', time: roundedTime })
+	}
 
 	useEffect(() => {
 		const getIsActiveMessage = (request: any) => {
@@ -229,30 +210,19 @@ function Recorder() {
 	}, [extensionIsActive])
 
 	const startTimer = () => {
-		chrome.runtime.sendMessage({ command: 'startTimer' })
+		chrome.runtime.sendMessage({ action: 'toggleRecording' })
+
+		// background 녹화 상태 토글 메시지 전송
 	}
 
 	const stopTimer = () => {
-		chrome.runtime.sendMessage({ command: 'stopTimer' })
+		// background 타이머 상태 토글 메시지 전송
+		chrome.runtime.sendMessage({ action: 'toggleRecording' })
 		setTime(0)
 	}
 
 	const handleStartStop = () => {
 		setIsRunning((prevIsRunning) => !prevIsRunning)
-	}
-
-	const handleRecordTime = () => {
-		setTimeRecords((prevRecords) => {
-			const lastRecord = prevRecords[prevRecords.length - 1]
-			if (lastRecord !== time) {
-				return [...prevRecords, time]
-			}
-			return prevRecords
-		})
-		recordTimeout.current = setTimeout(() => {
-			recordTimeout.current = null
-			//setTimeRecords([])
-		}, THROTTLE_TIME)
 	}
 
 	const isLogin = () => {
@@ -263,26 +233,17 @@ function Recorder() {
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
 				setAccessToken(response.accessToken)
-				handleStartStopClick()
-				// currentUrl === 'https://test.app.qaing.co' ? handleStartStopClick() : ''
-				// : window.open('https://app.qaing.co/home', '_blank')
+				moveOptionPage()
 			}
 			if (!response.accessToken) {
 				alert('로그인이 필요합니다.')
-				// if (
-				// 	currentUrl === 'https://app.qaing.co' ||
-				// 	currentUrl === 'http://localhost:3000' ||
-				// 	currentUrl === 'https://accounts.google.com' ||
-				// 	currentUrl === 'https://test.qaing.co'
-				// ) {
-				// 	return
-				// }
-				window.open('https://test.app.qaing.co/auth/signup', '_blank')
-				// window.location.href = 'https://app.qaing.co/auth/signup'
+
+				window.open('https://app.qaing.co/auth/signup', '_blank')
 			}
 		})
 	}
 
+	//재생 정지버튼 고체 버튼  + 시작 버튼
 	const [isPlaying, setIsPlaying] = useState<boolean>(false)
 	const startRecordingState = () => {
 		chrome.storage.local.set({ isPlaying: true })
@@ -290,10 +251,12 @@ function Recorder() {
 		console.log(isPlaying, 'startbutton')
 	}
 
+	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
 		chrome.storage.local.set({ isPlaying: false })
 		setIsPlaying(false)
 		console.log(isPlaying, 'stoptbutton')
+		stopTimer()
 		chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
 
 		// setRecording((prev) => !prev)
@@ -302,7 +265,6 @@ function Recorder() {
 		} catch (error) {
 			console.error('stopRecording 함수에서 오류가 발생했습니다:', error)
 		}
-		// stopTimer()
 	}
 
 	useEffect(() => {
@@ -312,6 +274,7 @@ function Recorder() {
 		})
 	})
 
+	// 녹화 버튼을 누르면 option페이지로 이동시는 코드
 	const moveOptionPage = () => {
 		startRecordingState()
 		chrome.runtime.sendMessage({ action: 'createAndMoveTab' })
@@ -322,29 +285,77 @@ function Recorder() {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
 
+	// 🙌 단축키
+	useEffect(() => {
+		const handleKeyPress = (event: KeyboardEvent) => {
+			// (Ctrl 또는 Command) + Shift + G
+			if (
+				(event.ctrlKey || event.metaKey) &&
+				event.shiftKey &&
+				event.key === 'g'
+			) {
+				// 첫 번째 버튼의 기능 (녹화 시작/종료)
+				event.preventDefault()
+				handleStartStopClick()
+			}
+			// (Ctrl 또는 Command) + Shift + B
+			else if (
+				(event.ctrlKey || event.metaKey) &&
+				event.shiftKey &&
+				event.key === 'b'
+			) {
+				// 두 번째 버튼의 기능 (이슈 저장)
+				event.preventDefault()
+				handleRecordTime()
+			}
+		}
+
+		// 키보드 이벤트 리스너 등록
+		window.addEventListener('keydown', handleKeyPress)
+
+		// 컴포넌트가 언마운트될 때 이벤트 리스너 제거
+		return () => {
+			window.removeEventListener('keydown', handleKeyPress)
+		}
+	}, [handleStartStopClick, handleRecordTime])
+
+	useEffect(() => {
+		console.log('timeRecordsCount', timeRecordsCount)
+	}, [])
+
 	return extensionIsActive === true ? (
-		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-101">
+		<section className="fixed left-4 bottom-10 z-200">
 			{/* <h1>Screen Recorder</h1> */}
-			<div className="flex flex-row ">
-				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
-					<div className="w-[64px] h-[64px] bg-white rounded-full flex flex-row items-center justify-center m-2">
-						<div className="flex flex-row items-center justify-center ">
-							{isPlaying ? (
-								<button
-									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
-									onClick={stopRecordingState}
-								>
-									정지
-								</button>
-							) : (
-								<button
-									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-[99px]"
-									onClick={moveOptionPage}
-								>
-									시작
-								</button>
-							)}
-						</div>
+			<div className="inline-block ">
+				<div className="flex flex-row h-[68px] bg-[#1B1B1B] rounded-full">
+					<div className=" h-[52px]   rounded-full  px-2 py-2  ">
+						{isPlaying ? (
+							<button
+								className="  rounded-[99px]  inline-block px-2 py-2 hover:bg-[#5F6060]"
+								onClick={stopRecordingState}
+							>
+								<div className="flex flex-row  ">
+									<StopButton />
+									<p className="b2 ml-2 my-[6px] text-white">
+										{`${Math.floor(time / 60)
+											.toString()
+											.padStart(2, '0')}:${(time % 60)
+											.toString()
+											.padStart(2, '0')}`}
+									</p>
+								</div>
+							</button>
+						) : (
+							<button
+								className="   rounded-[99px]  inline-block px-2 py-2 hover:bg-[#5F6060] "
+								onClick={isLogin}
+							>
+								<div className="flex flex-row  ">
+									<StartButton />
+									<p className="b2 ml-2 my-[6px] text-white">QA 시작</p>
+								</div>
+							</button>
+						)}
 					</div>
 					<div className="flex flex-row items-center justify-center">
 						<div className="bg-white rounded-full w-[155.4px] h-[63.5px]">
@@ -365,19 +376,16 @@ function Recorder() {
 								<div className="font-semibold text-xl">
 									<button onClick={handleRecordTime}>이슈저장</button>
 								</div>
-								<p>{`${Math.floor(time / 60)
-									.toString()
-									.padStart(2, '0')}:${(time % 60)
-									.toString()
-									.padStart(2, '0')}`}</p>
+								{timeRecordsCount > 0 && (
+									<div className="bg-gray-100  h-[200xp] rounded-[99px] ">
+										<p>{timeRecordsCount}</p>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
 				</div>
-				<div className="bg-white w-[200px] h-[200px]">
-					<button onClick={startTimer}>Start </button>
-					<button onClick={stopTimer}>Stop </button>
-				</div>
+				<div className=" "></div>
 			</div>
 		</section>
 	) : (

@@ -13,7 +13,7 @@ const App: React.FC<{}> = () => {
 	//유적 FolderID
 	const [folderId, setFolderId] = useState<string>('')
 	//타임스탬프
-	const [timeRecords, setTimeRecords] = useState<number[]>([10])
+	const [timeRecords, setTimeRecords] = useState<number[]>([])
 
 	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
 
@@ -106,6 +106,9 @@ const App: React.FC<{}> = () => {
 			if (request.action === 'stopRecordingToOptions') {
 				setOptionsStopRecording(true)
 				console.log(' options: 녹화중지 요청 수신완료')
+				setTimeRecords(request.timeRecords)
+				console.log('options: 타임스탬프 저장시도')
+
 				// console.log('deacive')
 				// chrome.runtime.sendMessage({ command: 'deActive' })
 			}
@@ -118,7 +121,10 @@ const App: React.FC<{}> = () => {
 	}, [])
 
 	const startTimer = () => {
-		chrome.runtime.sendMessage({ command: 'startTimer' })
+		// chrome.runtime.sendMessage({ command: 'startTimer' })
+		chrome.runtime.sendMessage({ action: 'toggleRecording' })
+
+		// background 녹화 상태 토글 메시지 전송
 	}
 
 	const stopTimer = () => {
@@ -131,6 +137,10 @@ const App: React.FC<{}> = () => {
 		stopRecording()
 		console.log(' options 3: 녹화중지 함수 실행완료')
 	}, [optionsStopRecording])
+
+	useEffect(() => {
+		console.log('options: 타임스탬프 저장완료', timeRecords)
+	}, [timeRecords])
 
 	//s3버킷에 저장시키는 함수
 	const onSubmitVideo = async (
@@ -195,7 +205,7 @@ const App: React.FC<{}> = () => {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		// window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
+		window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
 	}, [folderId])
 
 	return (
