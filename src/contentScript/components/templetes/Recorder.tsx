@@ -29,44 +29,44 @@ function Recorder() {
 	const recordTimeout = useRef<NodeJS.Timeout | null>(null)
 
 	//화면녹화 버튼을 감지해서 녹화를 실행하는 코드
-	useEffect(() => {
-		if (recording) {
-			startRecording()
-			const timer = setTimeout(() => {
-				stopRecording()
-			}, 3600000) // 1시간 후에 녹화 중단
-			return () => clearTimeout(timer)
-		} else {
-			stopRecording()
-		}
-	}, [recording])
+	// useEffect(() => {
+	// 	if (recording) {
+	// 		startRecording()
+	// 		const timer = setTimeout(() => {
+	// 			stopRecording()
+	// 		}, 3600000) // 1시간 후에 녹화 중단
+	// 		return () => clearTimeout(timer)
+	// 	} else {
+	// 		stopRecording()
+	// 	}
+	// }, [recording])
 
-	const startRecording = () => {
-		navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
-			const recorder = new MediaRecorder(stream)
-			setMediaRecorder(recorder)
-			const chunks: Blob[] = []
-			recorder.ondataavailable = (e) => {
-				if (e.data.size > 0) {
-					chunks.push(e.data)
-					setRecordedChunks(new Blob([e.data], { type: 'video/webm' }))
-					console.log('chunks', chunks)
-				}
-			}
+	// const startRecording = () => {
+	// 	navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
+	// 		const recorder = new MediaRecorder(stream)
+	// 		setMediaRecorder(recorder)
+	// 		const chunks: Blob[] = []
+	// 		recorder.ondataavailable = (e) => {
+	// 			if (e.data.size > 0) {
+	// 				chunks.push(e.data)
+	// 				setRecordedChunks(new Blob([e.data], { type: 'video/webm' }))
+	// 				console.log('chunks', chunks)
+	// 			}
+	// 		}
 
-			recorder.onstop = () => {
-				const blob = new Blob(chunks, { type: 'video/webm' })
-				const url = URL.createObjectURL(blob)
-				setVideoURL(url)
-				console.log('url', url)
-			}
+	// 		recorder.onstop = () => {
+	// 			const blob = new Blob(chunks, { type: 'video/webm' })
+	// 			const url = URL.createObjectURL(blob)
+	// 			setVideoURL(url)
+	// 			console.log('url', url)
+	// 		}
 
-			recorder.start()
-			handleStartStop()
+	// 		recorder.start()
+	// 		handleStartStop()
 
-			setMediaStream(stream)
-		})
-	}
+	// 		setMediaStream(stream)
+	// 	})
+	// }
 
 	const stopRecording = () => {
 		if (mediaRecorder) {
@@ -281,6 +281,10 @@ function Recorder() {
 				// window.location.href = 'https://app.qaing.co/auth/signup'
 			}
 		})
+	}
+
+	const moveOptionPage = () => {
+		chrome.runtime.openOptionsPage()
 	}
 
 	useEffect(() => {

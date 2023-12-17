@@ -9,15 +9,19 @@ const App: React.FC<{}> = () => {
 	const [recordedChunks, setRecordedChunks] = useState<Blob>()
 	const [videoURL, setVideoURL] = useState<string | null>(null)
 
+	useEffect(() => {})
+
 	//페이지 랜딩되자마자 페이지 녹화시작
 	useEffect(() => {
+		setRecording(true)
 		if (recording) {
 			startRecording()
 			const timer = setTimeout(() => {
 				stopRecording()
 			}, 3600000) // 1시간 후에 녹화 중단
 			return () => clearTimeout(timer)
-		} else {
+		}
+		if (!recording) {
 			stopRecording()
 		}
 	}, [recording])
