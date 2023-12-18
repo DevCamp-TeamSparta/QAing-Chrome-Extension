@@ -338,7 +338,7 @@ function Recorder() {
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
 				<div className="flex flex-row h-[68px] dimmed rounded-full">
-					<div className=" h-[52px]   rounded-full  px-2 py-2  ">
+					<div className="   rounded-full  px-2 py-2  ">
 						{isPlaying ? (
 							<button
 								className="  rounded-[99px]  inline-block px-2 py-2 hover:bg-[#5F6060]"

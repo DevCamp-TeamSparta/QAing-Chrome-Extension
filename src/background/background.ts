@@ -23,6 +23,8 @@
 // 	}
 
 //모든 페이지에 아이콘 클릭시 레코더 띄우기(contentScript.js)
+
+let beforeTabId: number | undefined
 let isActive = false
 chrome.action.onClicked.addListener(async () => {
 	isActive = !isActive
@@ -31,6 +33,7 @@ chrome.action.onClicked.addListener(async () => {
 		console.log('isActive', isActive)
 		console.log(tabs)
 		if (tabs.length > 0 && tabs[0].id) {
+			beforeTabId = tabs[0].id
 			chrome.scripting.executeScript({
 				target: { tabId: tabs[0].id },
 				files: ['contentScript.js'],
@@ -49,6 +52,25 @@ chrome.action.onClicked.addListener(async () => {
 		})
 	}
 })
+
+const closeBeforeTab = () => {
+	console.log('beforeTabID', beforeTabId)
+	beforeTabId &&
+		chrome.tabs
+			.sendMessage(beforeTabId, { extensionIsActive: false })
+			.catch((err) => console.error(err))
+}
+
+const closRecorder = () => {
+	chrome.tabs.query({}, function (tabs) {
+		tabs.forEach(function (tab) {
+			tab.id &&
+				chrome.tabs
+					.sendMessage(tab.id, { extensionIsActive: false })
+					.catch((err) => console.error(err))
+		})
+	})
+}
 
 // chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // 	if (request.command === 'deActive') {
@@ -89,9 +111,12 @@ chrome.tabs.onUpdated.addListener(async function (tab) {
 chrome.tabs.onActivated.addListener(async function (tab) {
 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	if (isActive) {
-		console.log('isActive', isActive)
-		console.log(tabs)
+		// console.log('isActive', isActive)
+		// console.log(tabs)
 		if (tabs.length > 0 && tabs[0].id) {
+			closeBeforeTab()
+			console.log('currentTabId', tabs[0].id)
+			beforeTabId = tabs[0].id
 			chrome.scripting.executeScript({
 				target: { tabId: tabs[0].id },
 				files: ['contentScript.js'],
@@ -171,9 +196,8 @@ chrome.runtime.onMessage.addListener(
 	async function (request, sender, sendResponse) {
 		if (request.action === 'stopRecordingToBackgournd') {
 			console.log('stopRecordingToBackgournd')
-			timer = 0
-			timeRecords = []
-			timeRecordsCount = 0
+			closRecorder()
+			isActive = false
 			chrome.tabs.query(
 				{ url: chrome.runtime.getURL('options.html') },
 				function (tabs) {
@@ -201,6 +225,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 		isRecording = !isRecording
 		if (isRecording) {
 			timer = 0
+			timeRecords = []
+			timeRecordsCount = 0
 			startTimer()
 		} else {
 			stopTimer()
