@@ -171,6 +171,9 @@ chrome.runtime.onMessage.addListener(
 	async function (request, sender, sendResponse) {
 		if (request.action === 'stopRecordingToBackgournd') {
 			console.log('stopRecordingToBackgournd')
+			timer = 0
+			timeRecords = []
+			timeRecordsCount = 0
 			chrome.tabs.query(
 				{ url: chrome.runtime.getURL('options.html') },
 				function (tabs) {

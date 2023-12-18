@@ -15,7 +15,7 @@ const App: React.FC<{}> = () => {
 	//타임스탬프
 	const [timeRecords, setTimeRecords] = useState<number[]>([])
 
-	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
+	const baseUrl = process.env.PUBLIC_BACKEND_TEST_API_URL
 
 	useEffect(() => {})
 
@@ -205,7 +205,7 @@ const App: React.FC<{}> = () => {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
+		// window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
 	}, [folderId])
 
 	return (

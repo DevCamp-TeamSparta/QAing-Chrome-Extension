@@ -228,7 +228,6 @@ function Recorder() {
 	const isLogin = () => {
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
-		console.log('currentUrl', currentUrl === 'https://test.app.qaing.co')
 
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
