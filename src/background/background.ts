@@ -210,6 +210,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 		const lastRecord = timeRecords[timeRecords.length - 1]
 		if (lastRecord === undefined || request.time - lastRecord >= 1) {
 			timeRecords.push(request.time) // 녹화 중 이슈 저장 시간 기록
+			chrome.storage.local.set({ timeRecords: timeRecords })
 			updateTabsWithTimeRecords()
 		} // 모든 탭에 시간 기록 업데이트
 	}

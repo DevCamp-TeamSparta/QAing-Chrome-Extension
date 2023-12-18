@@ -173,7 +173,7 @@ function Recorder() {
 				setIsRunning(request.isRecording)
 			}
 			if (request.action === 'updateTimeRecords') {
-				setTimeRecords(request.timeRecords)
+				// setTimeRecords(request.timeRecords)
 				setTimeRecordsCount(request.timeRecordsCount)
 			}
 		}
@@ -272,7 +272,12 @@ function Recorder() {
 			console.log(data.isPlaying) // "value"
 			setIsPlaying(data.isPlaying)
 		})
-	})
+		chrome.storage.local.get('timeRecords', function (data) {
+			console.log(data.timeRecords)
+			const RecordsCount = data.timeRecords.length
+			setTimeRecordsCount(RecordsCount)
+		})
+	}, [])
 
 	// 녹화 버튼을 누르면 option페이지로 이동시는 코드
 	const moveOptionPage = () => {
@@ -336,7 +341,7 @@ function Recorder() {
 							>
 								<div className="flex flex-row  ">
 									<StopButton />
-									<p className="b2 ml-2 my-[6px] text-white">
+									<p className="b2 mx-2 my-[6px] text-white w-[64px]">
 										{`00:${Math.floor(time / 60)
 											.toString()
 											.padStart(2, '0')}:${(time % 60)
