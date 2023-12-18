@@ -26,49 +26,8 @@ function Recorder() {
 	//익스텐션 Acitve && inAcitvie
 	const [extensionIsActive, setExtensionIsActive] = useState<boolean>(true)
 
-	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
-
-	const recordTimeout = useRef<NodeJS.Timeout | null>(null)
-
-	//화면녹화 버튼을 감지해서 녹화를 실행하는 코드
-	// useEffect(() => {
-	// 	if (recording) {
-	// 		startRecording()
-	// 		const timer = setTimeout(() => {
-	// 			stopRecording()
-	// 		}, 3600000) // 1시간 후에 녹화 중단
-	// 		return () => clearTimeout(timer)
-	// 	} else {
-	// 		stopRecording()
-	// 	}
-	// }, [recording])
-
-	// const startRecording = () => {
-	// 	navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
-	// 		const recorder = new MediaRecorder(stream)
-	// 		setMediaRecorder(recorder)
-	// 		const chunks: Blob[] = []
-	// 		recorder.ondataavailable = (e) => {
-	// 			if (e.data.size > 0) {
-	// 				chunks.push(e.data)
-	// 				setRecordedChunks(new Blob([e.data], { type: 'video/webm' }))
-	// 				console.log('chunks', chunks)
-	// 			}
-	// 		}
-
-	// 		recorder.onstop = () => {
-	// 			const blob = new Blob(chunks, { type: 'video/webm' })
-	// 			const url = URL.createObjectURL(blob)
-	// 			setVideoURL(url)
-	// 			console.log('url', url)
-	// 		}
-
-	// 		recorder.start()
-	// 		handleStartStop()
-
-	// 		setMediaStream(stream)
-	// 	})
-	// }
+	//환경 변수
+	const frontServer = process.env.PUBLIC_FONTEND_URL
 
 	const stopRecording = () => {
 		if (mediaRecorder) {
@@ -98,7 +57,7 @@ function Recorder() {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
+		window.location.href = `${frontServer}/folder/${usersFolderId}/issues`
 	}, [folderId])
 
 	//녹화 시작 정지 버튼핸들러
@@ -128,7 +87,7 @@ function Recorder() {
 			console.log('전송시작')
 
 			await axios
-				.put(`${baseUrl}/videos/process/${usersFolderId}`, formData, {
+				.put(`${frontServer}/videos/process/${usersFolderId}`, formData, {
 					withCredentials: true,
 				})
 				.then((response) => {
@@ -147,7 +106,7 @@ function Recorder() {
 	const onSubmitGetId = async () => {
 		console.log('id가져오기 시작')
 		await axios
-			.get(`${baseUrl}/videos/process`, {
+			.get(`${frontServer}/videos/process`, {
 				withCredentials: true,
 			})
 			.then((response) => {
@@ -237,7 +196,7 @@ function Recorder() {
 			if (!response.accessToken) {
 				alert('로그인이 필요합니다.')
 
-				window.open('https://app.qaing.co/auth/signup', '_blank')
+				window.open(`${frontServer}/auth/signup`, '_blank')
 			}
 		})
 	}

@@ -15,7 +15,8 @@ const App: React.FC<{}> = () => {
 	//타임스탬프
 	const [timeRecords, setTimeRecords] = useState<number[]>([])
 
-	const baseUrl = process.env.PUBLIC_BACKEND_TEST_API_URL
+	const backServer = process.env.PUBLIC_BACKEND_API_URL
+	const frontServer = process.env.PUBLIC_FONTEND_URL
 
 	useEffect(() => {})
 
@@ -157,7 +158,7 @@ const App: React.FC<{}> = () => {
 			console.log('전송시작')
 
 			await axios
-				.put(`${baseUrl}/videos/process/${usersFolderId}`, formData, {
+				.put(`${backServer}/videos/process/${usersFolderId}`, formData, {
 					withCredentials: true,
 				})
 				.then((response) => {
@@ -176,7 +177,7 @@ const App: React.FC<{}> = () => {
 	const onSubmitGetId = async () => {
 		console.log('id가져오기 시작')
 		await axios
-			.get(`${baseUrl}/videos/process`, {
+			.get(`${backServer}/videos/process`, {
 				withCredentials: true,
 			})
 			.then((response) => {
@@ -205,7 +206,7 @@ const App: React.FC<{}> = () => {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		// window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
+		// window.location.href = `${frontServer}/${usersFolderId}/issues`
 	}, [folderId])
 
 	return (

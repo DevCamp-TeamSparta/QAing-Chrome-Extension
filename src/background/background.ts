@@ -137,7 +137,6 @@ chrome.tabs.onActivated.addListener(async function (tab) {
 })
 
 //로그인 토큰 가져오기
-const HOMEPAGE_ADDR = process.env.CHROME_EXENSION_HOMEPAGE_LOCAL || ''
 const HOMEPAGE_QAING = process.env.CHROME_EXENSION_HOMEPAGE_QAING || ''
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
