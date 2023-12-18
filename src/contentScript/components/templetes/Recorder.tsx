@@ -259,6 +259,12 @@ function Recorder() {
 		stopTimer()
 		chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
 
+		//이슈저장 카운트 리셋
+		chrome.storage.local.remove('timeRecords', function () {
+			console.log('timeRecords가 삭제되었습니다.')
+		})
+		setTimeRecordsCount(0)
+
 		// setRecording((prev) => !prev)
 		try {
 			stopRecording()
