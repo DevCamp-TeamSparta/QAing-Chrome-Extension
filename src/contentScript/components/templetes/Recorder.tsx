@@ -132,7 +132,7 @@ function Recorder() {
 				setIsRunning(request.isRecording)
 			}
 			if (request.action === 'updateTimeRecords') {
-				// setTimeRecords(request.timeRecords)
+				setTimeRecords(request.timeRecords)
 				setTimeRecordsCount(request.timeRecordsCount)
 			}
 		}
@@ -194,7 +194,7 @@ function Recorder() {
 				moveOptionPage()
 			}
 			if (!response.accessToken) {
-				alert('로그인이 필요합니다.')
+				alert('로그인이 필요해요 🙌')
 
 				window.open(`${frontServer}/auth/signup`, '_blank')
 			}
@@ -211,6 +211,13 @@ function Recorder() {
 
 	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
+		if (timeRecords.length === 0) {
+			alert(
+				'저장된 이슈가 없어 이슈 파일이 만들어지지 않았어요! 홈으로 이동할게요! 🙌 ',
+			)
+			window.open(`${frontServer}`, '_blank')
+		}
+
 		chrome.storage.local.set({ isPlaying: false })
 		setIsPlaying(false)
 		console.log(isPlaying, 'stoptbutton')
@@ -240,6 +247,7 @@ function Recorder() {
 			console.log(data.timeRecords)
 			const RecordsCount = data.timeRecords.length
 			setTimeRecordsCount(RecordsCount)
+			setTimeRecords(data.timeRecords)
 		})
 	}, [])
 

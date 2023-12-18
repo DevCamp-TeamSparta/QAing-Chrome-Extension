@@ -106,6 +106,7 @@ const App: React.FC<{}> = () => {
 		const stopRecordingFromBackground = (request: any) => {
 			if (request.action === 'stopRecordingToOptions') {
 				setOptionsStopRecording(true)
+
 				console.log(' options: 녹화중지 요청 수신완료')
 				setTimeRecords(request.timeRecords)
 				console.log('options: 타임스탬프 저장시도')
@@ -187,7 +188,7 @@ const App: React.FC<{}> = () => {
 				setFolderId(UsersfolderId)
 			})
 			.catch((error) => {
-				'몽고db id를 가져오지 못했습니다.'
+				console.log('몽고db id를 가져오지 못했습니다.', error)
 			})
 	}
 
@@ -195,6 +196,10 @@ const App: React.FC<{}> = () => {
 	useEffect(() => {
 		if (recordedChunks) {
 			// onSubmitVideo(recordedChunks, timeRecords)
+			if (timeRecords.length === 0) {
+				window.close()
+				return
+			}
 			onSubmitGetId()
 		}
 	}, [recordedChunks])
@@ -206,7 +211,11 @@ const App: React.FC<{}> = () => {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		// window.location.href = `${frontServer}/${usersFolderId}/issues`
+		console.log(
+			'folder페이지로 이동합니다.',
+			`${frontServer}/folders/${usersFolderId}/issues`,
+		)
+		window.open(`${frontServer}/folders/${usersFolderId}/issues`, '_blank')
 	}, [folderId])
 
 	return (
