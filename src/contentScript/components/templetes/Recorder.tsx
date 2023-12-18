@@ -150,6 +150,7 @@ function Recorder() {
 	useEffect(() => {
 		const getIsActiveMessage = (request: any) => {
 			if (request.extensionIsActive !== undefined) {
+				console.log(request.extectionIsActive)
 				setExtensionIsActive(request.extensionIsActive)
 				console.log('extensionIsActive 수신완료')
 				// console.log('deacive')

@@ -71,6 +71,7 @@ const App: React.FC<{}> = () => {
 			})
 			.catch((error) => {
 				console.log('에러발생', error)
+				chrome.runtime.sendMessage({ action: 'cancel' })
 				window.close()
 			})
 	}

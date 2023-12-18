@@ -26,7 +26,7 @@
 
 let beforeTabId: number | undefined
 let isActive = false
-chrome.action.onClicked.addListener(async () => {
+chrome.action.onClicked.addListener(async function clickIcon() {
 	isActive = !isActive
 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	if (isActive) {
@@ -61,7 +61,7 @@ const closeBeforeTab = () => {
 			.catch((err) => console.error(err))
 }
 
-const closRecorder = () => {
+const closeRecorder = () => {
 	chrome.tabs.query({}, function (tabs) {
 		tabs.forEach(function (tab) {
 			tab.id &&
@@ -81,7 +81,7 @@ const closRecorder = () => {
 
 //탭활성화시 보낼 메세지
 
-chrome.tabs.onUpdated.addListener(async function (tab) {
+chrome.tabs.onUpdated.addListener(async function enterURL(tab) {
 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	if (isActive) {
 		console.log('isActive', isActive)
@@ -108,7 +108,7 @@ chrome.tabs.onUpdated.addListener(async function (tab) {
 
 // chrome.tabs.onCreated.addListener(async function (tab) {})
 
-chrome.tabs.onActivated.addListener(async function (tab) {
+chrome.tabs.onActivated.addListener(async function ClickTab(tab) {
 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	if (isActive) {
 		// console.log('isActive', isActive)
@@ -135,6 +135,15 @@ chrome.tabs.onActivated.addListener(async function (tab) {
 		})
 	}
 })
+
+chrome.runtime.onMessage.addListener(
+	function cancelMeidaStream(request, sender, sendResponse) {
+		if (request.action === 'cancel') {
+			isActive = false
+			console.log('cancel')
+		}
+	},
+)
 
 //로그인 토큰 가져오기
 const HOMEPAGE_QAING = process.env.CHROME_EXENSION_HOMEPAGE_QAING || ''
@@ -195,7 +204,7 @@ chrome.runtime.onMessage.addListener(
 	async function (request, sender, sendResponse) {
 		if (request.action === 'stopRecordingToBackgournd') {
 			console.log('stopRecordingToBackgournd')
-			closRecorder()
+			closeRecorder()
 			isActive = false
 			chrome.tabs.query(
 				{ url: chrome.runtime.getURL('options.html') },
