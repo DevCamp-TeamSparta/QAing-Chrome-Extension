@@ -324,10 +324,10 @@ function Recorder() {
 	}, [])
 
 	return extensionIsActive === true ? (
-		<section className="fixed left-4 bottom-10 z-200">
+		<section className="fixed left-[50px] bottom-[70px] z-900 ">
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
-				<div className="flex flex-row h-[68px] bg-[#1B1B1B] rounded-full">
+				<div className="flex flex-row h-[68px] dimmed rounded-full">
 					<div className=" h-[52px]   rounded-full  px-2 py-2  ">
 						{isPlaying ? (
 							<button
@@ -337,7 +337,7 @@ function Recorder() {
 								<div className="flex flex-row  ">
 									<StopButton />
 									<p className="b2 ml-2 my-[6px] text-white">
-										{`${Math.floor(time / 60)
+										{`00:${Math.floor(time / 60)
 											.toString()
 											.padStart(2, '0')}:${(time % 60)
 											.toString()
@@ -357,32 +357,69 @@ function Recorder() {
 							</button>
 						)}
 					</div>
-					<div className="flex flex-row items-center justify-center">
-						<div className="bg-white rounded-full w-[155.4px] h-[63.5px]">
-							<div className="flex flex-row items-center justify-evenly h-full">
-								<svg
-									width="19.4"
-									height="27.5"
-									viewBox="0 0 19.4 27.5"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										d="M0 4.01821C0 2.95252 0.38324 1.93047 1.06541 1.17691C1.74758 0.423346 2.6728 0 3.63754 0H15.7627C16.7274 0 17.6526 0.423346 18.3348 1.17691C19.017 1.93047 19.4002 2.95252 19.4002 4.01821V25.4862C19.4002 27.1203 17.7269 28.0712 16.5241 27.1216L9.7001 21.7372L2.87608 27.1216C1.67206 28.0726 0 27.1216 0 25.4875V4.01821Z"
-										fill="#585858"
-									/>
-								</svg>
-
-								<div className="font-semibold text-xl">
-									<button onClick={handleRecordTime}>이슈저장</button>
-								</div>
-								{timeRecordsCount > 0 && (
-									<div className="bg-gray-100  h-[200xp] rounded-[99px] ">
-										<p>{timeRecordsCount}</p>
+					{/* 가운데 막대바 */}
+					<div className="h-[28px] border border-gray-900 ml-2 mt-5 "></div>
+					<div className="px-2 py-2">
+						{isPlaying ? (
+							<button
+								className="rounded-[99px] h-[52px] inline-block px-2 py-2 pr-2 hover:bg-[#5F6060] "
+								onClick={handleRecordTime}
+							>
+								<div className="flex flex-row items-center   ">
+									<div className="ml-2">
+										<svg
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M4 2.42471C4 1.63786 4.59695 1 5.33333 1H18.6667C19.403 1 20 1.63786 20 2.42471V21.5725C20 22.8018 18.6407 23.4541 17.7808 22.6373L12.8858 17.988C12.3806 17.5082 11.6194 17.5082 11.1142 17.988L6.21915 22.6373C5.35928 23.4541 4 22.8018 4 21.5725V2.42471Z"
+												fill="white"
+											/>
+										</svg>
 									</div>
-								)}
+
+									<p className="b2 mx-2 my-[6px] text-white">이슈 저장</p>
+									{timeRecordsCount > 0 && (
+										<div
+											className={`bg-white inline-block rounded-[99px] h-[28px]  ml-2 ${
+												timeRecordsCount < 10 ? 'min-w-[28px]' : 'min-w-[38px]'
+											}`}
+										>
+											<div className="mt-[2px] ">
+												<p> {timeRecordsCount}</p>
+											</div>
+										</div>
+									)}
+								</div>
+							</button>
+						) : (
+							<div
+								className="rounded-[99px] h-[52px] inline-block px-2 py-2  "
+								onClick={handleRecordTime}
+							>
+								<div className="flex flex-row items-center  ">
+									<div>
+										<svg
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M4 2.42471C4 1.63786 4.59695 1 5.33333 1H18.6667C19.403 1 20 1.63786 20 2.42471V21.5725C20 22.8018 18.6407 23.4541 17.7808 22.6373L12.8858 17.988C12.3806 17.5082 11.6194 17.5082 11.1142 17.988L6.21915 22.6373C5.35928 23.4541 4 22.8018 4 21.5725V2.42471Z"
+												fill="white"
+											/>
+										</svg>
+									</div>
+
+									<p className="b2 ml-2 my-[6px] text-white">이슈 저장</p>
+								</div>
 							</div>
-						</div>
+						)}
 					</div>
 				</div>
 				<div className=" "></div>
