@@ -304,11 +304,11 @@ function Recorder() {
 		<section className="fixed left-[50px] bottom-[70px] z-900 ">
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
-				<div className="flex flex-row h-[68px] dimmed rounded-full">
-					<div className="   rounded-full  px-2 py-2  ">
+				<div className="flex flex-row h-[68px] bg-[#3C3C3C]  px-2 py-2  rounded-full">
+					<div className="   rounded-full flex flex-row items-center px-2 py-2  ">
 						{isPlaying ? (
 							<button
-								className="  rounded-[99px]  inline-block px-2 py-2 hover:bg-[#5F6060]"
+								className="  rounded-[99px] flex flex-row items-center  px-2 py-2 hover:bg-[#5F6060]"
 								onClick={stopRecordingState}
 							>
 								<div className="flex flex-row  ">
@@ -324,7 +324,7 @@ function Recorder() {
 							</button>
 						) : (
 							<button
-								className="   rounded-[99px]  inline-block px-2 py-2 hover:bg-[#5F6060] "
+								className="   rounded-[99px] flex flex-row items-center px-2 py-2 hover:bg-[#5F6060] "
 								onClick={isLogin}
 							>
 								<div className="flex flex-row  ">
@@ -335,11 +335,11 @@ function Recorder() {
 						)}
 					</div>
 					{/* 가운데 막대바 */}
-					<div className="h-[28px] border border-gray-900 ml-2 mt-5 "></div>
-					<div className="px-2 py-2">
+					<div className="h-[28px] border border-gray-700 ml-2 mt-[15px] "></div>
+					<div className="px-2 py-2 flex flex-row items-center">
 						{isPlaying ? (
 							<button
-								className="rounded-[99px] h-[52px] inline-block px-2 py-2 pr-2 hover:bg-[#5F6060] "
+								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 hover:bg-[#5F6060] "
 								onClick={handleRecordTime}
 							>
 								<div className="flex flex-row items-center   ">
@@ -361,7 +361,7 @@ function Recorder() {
 									<p className="b2 mx-2 my-[6px] text-white">이슈 저장</p>
 									{timeRecordsCount > 0 && (
 										<div
-											className={`bg-white inline-block rounded-[99px] h-[28px]  ml-2 ${
+											className={`bg-white flex flex-row items-center rounded-[99px] h-[28px]  ml-2 ${
 												timeRecordsCount < 10 ? 'min-w-[28px]' : 'min-w-[38px]'
 											}`}
 										>
@@ -374,7 +374,7 @@ function Recorder() {
 							</button>
 						) : (
 							<div
-								className="rounded-[99px] h-[52px] inline-block px-2 py-2  "
+								className="rounded-[99px] h-[52px] flex flex-row items-center  px-2 py-2  "
 								onClick={handleRecordTime}
 							>
 								<div className="flex flex-row items-center  ">
