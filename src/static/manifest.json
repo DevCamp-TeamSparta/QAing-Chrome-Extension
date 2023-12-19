@@ -4,16 +4,16 @@
 	"version": "1.0.0",
 	"manifest_version": 3,
 	"icons": {
-		"16": "qaingicon.png",
-		"48": "qaingicon.png",
-		"128": "qaingicon.png"
+		"16": "qaingicon16.png",
+		"48": "qaingicon48.png",
+		"128": "qaingicon128.png"
 	},
 
 	"action": {
-		"default_title": "React Extension",
+		"default_title": "QAing",
 		"default_icon": "qaingicon.png"
 	},
-	"host_permissions": ["https://*/*"],
+	"host_permissions": ["https://*/*", "chrome-extension://*/*"],
 	"permissions": ["cookies", "tabs", "scripting", "activeTab", "storage"],
 	"options_page": "options.html",
 	"background": {
