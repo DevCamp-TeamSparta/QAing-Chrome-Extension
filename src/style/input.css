@@ -37,7 +37,7 @@
 }
 
 .dimmed {
-	@apply bg-extra-black opacity-30;
+	@apply bg-extra-black opacity-80;
 }
 
 button {

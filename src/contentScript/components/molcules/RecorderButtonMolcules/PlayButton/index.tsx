@@ -1,5 +1,5 @@
 import React from 'react'
-import RecorderButton from '../../../atoms/RecorderButtonAtoms/index'
+import RecorderButton from '../../../atoms/RecorderStartButtonAtoms/index'
 
 export default function index() {
 	return (

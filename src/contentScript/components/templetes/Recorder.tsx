@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { useInterval } from '../../hooks/useInterval'
 import React from 'react'
+import StartButton from '../atoms/RecorderStartButtonAtoms/index'
+import StopButton from '../atoms/RecorderStopButtonAtoms'
 
 function Recorder() {
 	const [recording, setRecording] = useState(false)
@@ -15,6 +16,7 @@ function Recorder() {
 	//타이머
 	const [time, setTime] = useState<number>(0)
 	const [isRunning, setIsRunning] = useState<boolean>(false)
+	const [timeRecordsCount, setTimeRecordsCount] = useState<number>(0)
 	const [timeRecords, setTimeRecords] = useState<number[]>([])
 	const THROTTLE_TIME = 1000
 
@@ -24,49 +26,8 @@ function Recorder() {
 	//익스텐션 Acitve && inAcitvie
 	const [extensionIsActive, setExtensionIsActive] = useState<boolean>(true)
 
-	const baseUrl = process.env.PUBLIC_BACKEND_API_URL
-
-	const recordTimeout = useRef<NodeJS.Timeout | null>(null)
-
-	//화면녹화 버튼을 감지해서 녹화를 실행하는 코드
-	useEffect(() => {
-		if (recording) {
-			startRecording()
-			const timer = setTimeout(() => {
-				stopRecording()
-			}, 3600000) // 1시간 후에 녹화 중단
-			return () => clearTimeout(timer)
-		} else {
-			stopRecording()
-		}
-	}, [recording])
-
-	const startRecording = () => {
-		navigator.mediaDevices.getDisplayMedia({ video: true }).then((stream) => {
-			const recorder = new MediaRecorder(stream)
-			setMediaRecorder(recorder)
-			const chunks: Blob[] = []
-			recorder.ondataavailable = (e) => {
-				if (e.data.size > 0) {
-					chunks.push(e.data)
-					setRecordedChunks(new Blob([e.data], { type: 'video/webm' }))
-					console.log('chunks', chunks)
-				}
-			}
-
-			recorder.onstop = () => {
-				const blob = new Blob(chunks, { type: 'video/webm' })
-				const url = URL.createObjectURL(blob)
-				setVideoURL(url)
-				console.log('url', url)
-			}
-
-			recorder.start()
-			handleStartStop()
-
-			setMediaStream(stream)
-		})
-	}
+	//환경 변수
+	const frontServer = process.env.PUBLIC_FONTEND_URL
 
 	const stopRecording = () => {
 		if (mediaRecorder) {
@@ -96,7 +57,7 @@ function Recorder() {
 		if (folderId === '') return
 		if (!recordedChunks) return
 		onSubmitVideo(recordedChunks, timeRecords, usersFolderId)
-		window.location.href = `https://app.qaing.co/folder/${usersFolderId}/issues`
+		window.location.href = `${frontServer}/folder/${usersFolderId}/issues`
 	}, [folderId])
 
 	//녹화 시작 정지 버튼핸들러
@@ -126,7 +87,7 @@ function Recorder() {
 			console.log('전송시작')
 
 			await axios
-				.put(`${baseUrl}/videos/process/${usersFolderId}`, formData, {
+				.put(`${frontServer}/videos/process/${usersFolderId}`, formData, {
 					withCredentials: true,
 				})
 				.then((response) => {
@@ -143,9 +104,9 @@ function Recorder() {
 	}
 
 	const onSubmitGetId = async () => {
-		console.log('id가져오기 시작ㄴ')
+		console.log('id가져오기 시작')
 		await axios
-			.get(`${baseUrl}/videos/process`, {
+			.get(`${frontServer}/videos/process`, {
 				withCredentials: true,
 			})
 			.then((response) => {
@@ -159,57 +120,37 @@ function Recorder() {
 			})
 	}
 
-	const handleDownloadClick = (blob: Blob) => {
-		// 녹화된 비디오 다운로드
-		if (recordedChunks) {
-			console.log('비디오 다운로드 준비완료')
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = 'recorded-screen.webm'
-			document.body.appendChild(a)
-			a.click()
-			URL.revokeObjectURL(url)
-			document.body.removeChild(a)
-			console.log('다운 가자!')
-		}
-	}
-
 	useEffect(() => {
 		console.log('timeRecords', timeRecords)
 	}, [timeRecords])
 
-	//타이머에서 계속 시간이 증가하도록 하는 코드
-	// useInterval(
-	// 	() => {
-	// 		if (time >= 3600) {
-	// 			stopRecording()
-	// 		} else {
-	// 			setTime(time + 1)
-	// 		}
-	// 	},
-	// 	isRunning ? 1000 : null,
-	// )
-
+	// background에서 타이머와 타임기록을 받아오는 코드
 	useEffect(() => {
-		const handleMessage = (request: {
-			time: React.SetStateAction<number> | undefined
-		}) => {
-			if (request.time !== undefined) {
-				setTime(request.time)
+		const receiveTimeRecords = (request: any) => {
+			if (request.action === 'updateState') {
+				setTime(request.timer)
+				setIsRunning(request.isRecording)
+			}
+			if (request.action === 'updateTimeRecords') {
+				setTimeRecords(request.timeRecords)
+				setTimeRecordsCount(request.timeRecordsCount)
 			}
 		}
-
-		chrome.runtime.onMessage.addListener(handleMessage)
-
+		chrome.runtime.onMessage.addListener(receiveTimeRecords)
 		return () => {
-			chrome.runtime.onMessage.removeListener(handleMessage)
+			chrome.runtime.onMessage.addListener(receiveTimeRecords)
 		}
 	}, [])
+
+	const handleRecordTime = () => {
+		const roundedTime = Math.floor(time)
+		chrome.runtime.sendMessage({ action: 'saveIssue', time: roundedTime })
+	}
 
 	useEffect(() => {
 		const getIsActiveMessage = (request: any) => {
 			if (request.extensionIsActive !== undefined) {
+				console.log(request.extectionIsActive)
 				setExtensionIsActive(request.extensionIsActive)
 				console.log('extensionIsActive 수신완료')
 				// console.log('deacive')
@@ -229,11 +170,14 @@ function Recorder() {
 	}, [extensionIsActive])
 
 	const startTimer = () => {
-		chrome.runtime.sendMessage({ command: 'startTimer' })
+		chrome.runtime.sendMessage({ action: 'toggleRecording' })
+
+		// background 녹화 상태 토글 메시지 전송
 	}
 
 	const stopTimer = () => {
-		chrome.runtime.sendMessage({ command: 'stopTimer' })
+		// background 타이머 상태 토글 메시지 전송
+		chrome.runtime.sendMessage({ action: 'toggleRecording' })
 		setTime(0)
 	}
 
@@ -241,72 +185,60 @@ function Recorder() {
 		setIsRunning((prevIsRunning) => !prevIsRunning)
 	}
 
-	const handleRecordTime = () => {
-		setTimeRecords((prevRecords) => {
-			const lastRecord = prevRecords[prevRecords.length - 1]
-			if (lastRecord !== time) {
-				return [...prevRecords, time]
-			}
-			return prevRecords
-		})
-		recordTimeout.current = setTimeout(() => {
-			recordTimeout.current = null
-			//setTimeRecords([])
-		}, THROTTLE_TIME)
-	}
-
 	const isLogin = () => {
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
-		console.log('currentUrl', currentUrl === 'https://test.app.qaing.co')
 
 		chrome.runtime?.sendMessage({ action: 'getToken' }, (response) => {
 			if (response.accessToken) {
 				setAccessToken(response.accessToken)
-				handleStartStopClick()
-				// currentUrl === 'https://test.app.qaing.co' ? handleStartStopClick() : ''
-				// : window.open('https://app.qaing.co/home', '_blank')
+				moveOptionPage()
 			}
 			if (!response.accessToken) {
-				alert('로그인이 필요합니다.')
-				// if (
-				// 	currentUrl === 'https://app.qaing.co' ||
-				// 	currentUrl === 'http://localhost:3000' ||
-				// 	currentUrl === 'https://accounts.google.com' ||
-				// 	currentUrl === 'https://test.qaing.co'
-				// ) {
-				// 	return
-				// }
-				window.open('https://test.app.qaing.co/auth/signup', '_blank')
-				// window.location.href = 'https://app.qaing.co/auth/signup'
+				alert('로그인이 필요해요 🙌')
+
+				window.open(`${frontServer}/auth/signup`, '_blank')
 			}
 		})
 	}
 
-	useEffect(() => {
-		console.log('accessToken', accessToken)
-	}, [accessToken])
-
+	//재생 정지버튼 고체 버튼  + 시작 버튼
 	const [isPlaying, setIsPlaying] = useState<boolean>(false)
 	const startRecordingState = () => {
 		chrome.storage.local.set({ isPlaying: true })
 		setIsPlaying(true)
-		startRecording()
 		console.log(isPlaying, 'startbutton')
-		// startTimer()
 	}
 
+	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
+		if (isPlaying && timeRecords.length === 0) {
+			alert(
+				'저장된 이슈가 없어 이슈 파일이 만들어지지 않았어요! 홈으로 이동할게요! 🙌 ',
+			)
+			chrome.storage.local.set({ isActive: false })
+			window.open(`${frontServer}`, '_blank')
+		}
+
 		chrome.storage.local.set({ isPlaying: false })
 		setIsPlaying(false)
 		console.log(isPlaying, 'stoptbutton')
+		stopTimer()
+		chrome.storage.local.set({ isActive: false })
+		chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
+
+		//이슈저장 카운트 리셋
+		chrome.storage.local.remove('timeRecords', function () {
+			console.log('timeRecords가 삭제되었습니다.')
+		})
+		setTimeRecordsCount(0)
+
 		// setRecording((prev) => !prev)
 		try {
 			stopRecording()
 		} catch (error) {
 			console.error('stopRecording 함수에서 오류가 발생했습니다:', error)
 		}
-		// stopTimer()
 	}
 
 	useEffect(() => {
@@ -314,64 +246,163 @@ function Recorder() {
 			console.log(data.isPlaying) // "value"
 			setIsPlaying(data.isPlaying)
 		})
-	})
+		chrome.storage.local.get('timeRecords', function (data) {
+			console.log(data.timeRecords)
+			const RecordsCount = data.timeRecords.length
+			setTimeRecordsCount(RecordsCount)
+			setTimeRecords(data.timeRecords)
+		})
+	}, [])
+
+	// 녹화 버튼을 누르면 option페이지로 이동시는 코드
+	const moveOptionPage = () => {
+		startRecordingState()
+		chrome.runtime.sendMessage({ action: 'createAndMoveTab' })
+		// startTimer()
+	}
+
+	useEffect(() => {
+		console.log('accessToken', accessToken)
+	}, [accessToken])
+
+	// 🙌 단축키
+	useEffect(() => {
+		const handleKeyPress = (event: KeyboardEvent) => {
+			// (Ctrl 또는 Command) + Shift + G
+			if (
+				(event.ctrlKey || event.metaKey) &&
+				event.shiftKey &&
+				event.key === 'g'
+			) {
+				// 첫 번째 버튼의 기능 (녹화 시작/종료)
+				event.preventDefault()
+				handleStartStopClick()
+			}
+			// (Ctrl 또는 Command) + Shift + B
+			else if (
+				(event.ctrlKey || event.metaKey) &&
+				event.shiftKey &&
+				event.key === 'b'
+			) {
+				// 두 번째 버튼의 기능 (이슈 저장)
+				event.preventDefault()
+				handleRecordTime()
+			}
+		}
+
+		// 키보드 이벤트 리스너 등록
+		window.addEventListener('keydown', handleKeyPress)
+
+		// 컴포넌트가 언마운트될 때 이벤트 리스너 제거
+		return () => {
+			window.removeEventListener('keydown', handleKeyPress)
+		}
+	}, [handleStartStopClick, handleRecordTime])
+
+	useEffect(() => {
+		console.log('timeRecordsCount', timeRecordsCount)
+	}, [])
 
 	return extensionIsActive === true ? (
-		<section className="fixed left-4 bottom-10 w-[247px] h-[240px] z-101">
+		<section className="fixed left-[50px] bottom-[70px] z-900 ">
 			{/* <h1>Screen Recorder</h1> */}
-			<div className="flex flex-row ">
-				<div className="flex flex-row w-[246px] h-[80px] bg-[#585858] rounded-full">
-					<div className="w-[64px] h-[64px] bg-white rounded-full flex flex-row items-center justify-center m-2">
-						<div className="flex flex-row items-center justify-center ">
-							{isPlaying ? (
-								<button
-									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-sm"
-									onClick={stopRecordingState}
-								>
-									정지
-								</button>
-							) : (
-								<button
-									className="bg-[#E95050] w-[24px] h-[24px] m-auto rounded-[99px]"
-									onClick={startRecordingState}
-								>
-									시작
-								</button>
-							)}
-						</div>
-					</div>
-					<div className="flex flex-row items-center justify-center">
-						<div className="bg-white rounded-full w-[155.4px] h-[63.5px]">
-							<div className="flex flex-row items-center justify-evenly h-full">
-								<svg
-									width="19.4"
-									height="27.5"
-									viewBox="0 0 19.4 27.5"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										d="M0 4.01821C0 2.95252 0.38324 1.93047 1.06541 1.17691C1.74758 0.423346 2.6728 0 3.63754 0H15.7627C16.7274 0 17.6526 0.423346 18.3348 1.17691C19.017 1.93047 19.4002 2.95252 19.4002 4.01821V25.4862C19.4002 27.1203 17.7269 28.0712 16.5241 27.1216L9.7001 21.7372L2.87608 27.1216C1.67206 28.0726 0 27.1216 0 25.4875V4.01821Z"
-										fill="#585858"
-									/>
-								</svg>
-
-								<div className="font-semibold text-xl">
-									<button onClick={handleRecordTime}>이슈저장</button>
+			<div className="inline-block ">
+				<div className="flex flex-row h-[68px]  bg-[#3C3C3C]  px-2 py-2  rounded-full">
+					<div className="   rounded-full flex flex-row items-center px-2 py-2  ">
+						{isPlaying ? (
+							<button
+								className="  rounded-[99px] flex flex-row items-center  px-2 py-2 hover:bg-[#5F6060]"
+								onClick={stopRecordingState}
+							>
+								<div className="flex flex-row  ">
+									<StopButton />
+									<p className="b2 mx-2 my-[6px] text-white w-[70px]">
+										{`00:${Math.floor(time / 60)
+											.toString()
+											.padStart(2, '0')}:${(time % 60)
+											.toString()
+											.padStart(2, '0')}`}
+									</p>
 								</div>
-								<p>{`${Math.floor(time / 60)
-									.toString()
-									.padStart(2, '0')}:${(time % 60)
-									.toString()
-									.padStart(2, '0')}`}</p>
+							</button>
+						) : (
+							<button
+								className="   rounded-[99px] flex flex-row items-center px-2 py-2 hover:bg-[#5F6060] "
+								onClick={isLogin}
+							>
+								<div className="flex flex-row  ">
+									<StartButton />
+									<p className="b2 ml-2 my-[6px] text-white">QA 시작</p>
+								</div>
+							</button>
+						)}
+					</div>
+					{/* 가운데 막대바 */}
+					<div className="h-[28px] border border-gray-700 ml-2 my-auto "></div>
+					<div className="px-2 py-2 flex flex-row items-center">
+						{isPlaying ? (
+							<button
+								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 hover:bg-[#5F6060] "
+								onClick={handleRecordTime}
+							>
+								<div className="flex flex-row items-center   ">
+									<div className="ml-2">
+										<svg
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M4 2.42471C4 1.63786 4.59695 1 5.33333 1H18.6667C19.403 1 20 1.63786 20 2.42471V21.5725C20 22.8018 18.6407 23.4541 17.7808 22.6373L12.8858 17.988C12.3806 17.5082 11.6194 17.5082 11.1142 17.988L6.21915 22.6373C5.35928 23.4541 4 22.8018 4 21.5725V2.42471Z"
+												fill="white"
+											/>
+										</svg>
+									</div>
+
+									<p className="b2 mx-2 my-[6px] text-white">이슈 저장</p>
+									{timeRecordsCount > 0 && (
+										<div
+											className={`bg-white flex flex-row items-center justify-center rounded-full h-[28px] ml-2 ${
+												timeRecordsCount < 10 ? 'min-w-[28px]' : 'min-w-[38px]'
+											}`}
+										>
+											<div className="mt-[2px] flex flex-row items-center b2">
+												<p> {timeRecordsCount}</p>
+											</div>
+										</div>
+									)}
+								</div>
+							</button>
+						) : (
+							<div
+								className="rounded-[99px] h-[52px] flex flex-row items-center  px-2 py-2  "
+								onClick={handleRecordTime}
+							>
+								<div className="flex flex-row items-center  ">
+									<div>
+										<svg
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M4 2.42471C4 1.63786 4.59695 1 5.33333 1H18.6667C19.403 1 20 1.63786 20 2.42471V21.5725C20 22.8018 18.6407 23.4541 17.7808 22.6373L12.8858 17.988C12.3806 17.5082 11.6194 17.5082 11.1142 17.988L6.21915 22.6373C5.35928 23.4541 4 22.8018 4 21.5725V2.42471Z"
+												fill="white"
+											/>
+										</svg>
+									</div>
+
+									<p className="b2 ml-2 my-[6px] text-white">이슈 저장</p>
+								</div>
 							</div>
-						</div>
+						)}
 					</div>
 				</div>
-				<div className="bg-white w-[200px] h-[200px]">
-					<button onClick={startTimer}>Start </button>
-					<button onClick={stopTimer}>Stop </button>
-				</div>
+				<div className=" "></div>
 			</div>
 		</section>
 	) : (
