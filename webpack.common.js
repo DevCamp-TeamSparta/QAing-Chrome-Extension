@@ -9,6 +9,7 @@ module.exports = {
 	entry: {
 		popup: path.resolve(__dirname, 'src/popup/popup.tsx'),
 		background: path.resolve(__dirname, 'src/background/background.ts'),
+		options: path.resolve(__dirname, 'src/options/options.tsx'),
 		contentScript: path.resolve(
 			__dirname,
 			'src/contentScript/contentScript.tsx',
