@@ -212,10 +212,11 @@ function Recorder() {
 
 	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
-		if (timeRecords.length === 0) {
+		if (isPlaying && timeRecords.length === 0) {
 			alert(
 				'저장된 이슈가 없어 이슈 파일이 만들어지지 않았어요! 홈으로 이동할게요! 🙌 ',
 			)
+			chrome.storage.local.set({ isActive: false })
 			window.open(`${frontServer}`, '_blank')
 		}
 
@@ -223,6 +224,7 @@ function Recorder() {
 		setIsPlaying(false)
 		console.log(isPlaying, 'stoptbutton')
 		stopTimer()
+		chrome.storage.local.set({ isActive: false })
 		chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
 
 		//이슈저장 카운트 리셋
@@ -305,7 +307,7 @@ function Recorder() {
 		<section className="fixed left-[50px] bottom-[70px] z-900 ">
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
-				<div className="flex flex-row h-[68px] bg-[#3C3C3C]  px-2 py-2  rounded-full">
+				<div className="flex flex-row h-[68px]  bg-[#3C3C3C]  px-2 py-2  rounded-full">
 					<div className="   rounded-full flex flex-row items-center px-2 py-2  ">
 						{isPlaying ? (
 							<button
@@ -314,7 +316,7 @@ function Recorder() {
 							>
 								<div className="flex flex-row  ">
 									<StopButton />
-									<p className="b2 mx-2 my-[6px] text-white w-[64px]">
+									<p className="b2 mx-2 my-[6px] text-white w-[70px]">
 										{`00:${Math.floor(time / 60)
 											.toString()
 											.padStart(2, '0')}:${(time % 60)
@@ -336,7 +338,7 @@ function Recorder() {
 						)}
 					</div>
 					{/* 가운데 막대바 */}
-					<div className="h-[28px] border border-gray-700 ml-2 mt-[15px] "></div>
+					<div className="h-[28px] border border-gray-700 ml-2 my-auto "></div>
 					<div className="px-2 py-2 flex flex-row items-center">
 						{isPlaying ? (
 							<button
@@ -362,11 +364,11 @@ function Recorder() {
 									<p className="b2 mx-2 my-[6px] text-white">이슈 저장</p>
 									{timeRecordsCount > 0 && (
 										<div
-											className={`bg-white flex flex-row items-center rounded-[99px] h-[28px]  ml-2 ${
+											className={`bg-white flex flex-row items-center justify-center rounded-full h-[28px] ml-2 ${
 												timeRecordsCount < 10 ? 'min-w-[28px]' : 'min-w-[38px]'
 											}`}
 										>
-											<div className="mt-[2px] ">
+											<div className="mt-[2px] flex flex-row items-center b2">
 												<p> {timeRecordsCount}</p>
 											</div>
 										</div>
