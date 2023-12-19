@@ -173,6 +173,45 @@ const closeRecorder = () => {
 // 	},
 // )
 
+// chrome.tabs.onCreated.addListener(async function (tab) {})
+
+chrome.tabs.onActivated.addListener(async function ClickTab(tab) {
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	if (isActive) {
+		// console.log('isActive', isActive)
+		// console.log(tabs)
+		if (tabs.length > 0 && tabs[0].id) {
+			closeBeforeTab()
+			console.log('currentTabId', tabs[0].id)
+			beforeTabId = tabs[0].id
+			chrome.scripting.executeScript({
+				target: { tabId: tabs[0].id },
+				files: ['contentScript.js'],
+			})
+		}
+	}
+	if (!isActive) {
+		console.log('isActive false', isActive)
+		chrome.tabs.query({}, function (tabs) {
+			tabs.forEach(function (tab) {
+				tab.id &&
+					chrome.tabs
+						.sendMessage(tab.id, { extensionIsActive: false })
+						.catch((err) => console.error(err))
+			})
+		})
+	}
+})
+
+chrome.runtime.onMessage.addListener(
+	function cancelMeidaStream(request, sender, sendResponse) {
+		if (request.action === 'cancel') {
+			isActive = false
+			console.log('cancel')
+		}
+	},
+)
+
 //로그인 토큰 가져오기
 const HOMEPAGE_QAING = process.env.CHROME_EXENSION_HOMEPAGE_QAING || ''
 
