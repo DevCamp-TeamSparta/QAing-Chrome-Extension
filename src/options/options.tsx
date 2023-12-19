@@ -71,7 +71,10 @@ const App: React.FC<{}> = () => {
 			})
 			.catch((error) => {
 				console.log('에러발생', error)
-				chrome.runtime.sendMessage({ action: 'cancel' })
+				// chrome.runtime.sendMessage({ action: 'cancel' })
+				stopRecording()
+				chrome.storage.local.set({ isActive: false })
+				chrome.storage.local.set({ isPlaying: false })
 				window.close()
 			})
 	}
@@ -180,6 +183,7 @@ const App: React.FC<{}> = () => {
 					// setFolderId(UsersfolderId)
 				})
 				.catch((error) => {
+					chrome.storage.local.set({ isActive: false })
 					// 에러 처리
 					console.error('오류발생', error)
 				})
@@ -229,7 +233,7 @@ const App: React.FC<{}> = () => {
 				'folder페이지로 이동합니다.',
 				`${frontServer}/folders/${usersFolderId}/issues`,
 			)
-			// window.close()
+			window.close()
 		}
 
 		onSubmitVideoData()
@@ -267,8 +271,8 @@ const App: React.FC<{}> = () => {
 				</div>
 				{/* 녹화 전 설명 이미지와 버튼 */}
 				{!mediaStream && (
-					<div className="flex flex-col items-center justify-center h-screen">
-						<div className="absolute bottom-[150px]">
+					<div className="flex flex-col items-center justify-center h-screen ">
+						<div className="mt-[200px]">
 							{/* 위치 조정 */}
 							<div>
 								<svg
