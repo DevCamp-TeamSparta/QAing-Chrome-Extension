@@ -19,7 +19,7 @@ const App: React.FC<{}> = () => {
 	const [isWindowClose, setIsWindowClose] = useState<boolean>(false)
 
 	const backServer = process.env.PUBLIC_BACKEND_API_URL
-	const frontServer = process.env.PUBLIC_FONTEND_URL
+	const frontServer = process.env.PUBLIC_FRONTEND_URL
 
 	useEffect(() => {})
 
@@ -241,27 +241,6 @@ const App: React.FC<{}> = () => {
 
 	return (
 		<div>
-			{/* <div>옵션페이지 확인</div>
-			<div className="w-[300px] h-[720px] bg-gray-200 text-xl">
-				옵션페이지 확인
-				<button
-					onClick={handleStartStop}
-					className=" text-2xl font-white bg-blue-300  "
-				>
-					{recording ? '녹화 종료' : '녹화 시작'}
-				</button>
-				{videoURL && (
-					<>
-						<video controls src={videoURL} width="400"></video>
-						<br />
-						{recordedChunks && (
-							<button onClick={() => handleDownloadClick(recordedChunks)}>
-								Download
-							</button>
-						)}
-					</>
-				)}
-			</div> */}
 			<div className="bg-[#EDFBFB] h-screen">
 				{' '}
 				{/* 배경색 설정 */}
