@@ -233,7 +233,7 @@ const App: React.FC<{}> = () => {
 				'folder페이지로 이동합니다.',
 				`${frontServer}/folders/${usersFolderId}/issues`,
 			)
-			// window.close()
+			window.close()
 		}
 
 		onSubmitVideoData()
