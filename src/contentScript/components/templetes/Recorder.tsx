@@ -27,7 +27,7 @@ function Recorder() {
 	const [extensionIsActive, setExtensionIsActive] = useState<boolean>(true)
 
 	//환경 변수
-	const frontServer = process.env.PUBLIC_FONTEND_URL
+	const frontServer = process.env.PUBLIC_FRONTEND_URL
 
 	const stopRecording = () => {
 		if (mediaRecorder) {

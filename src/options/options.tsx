@@ -19,7 +19,7 @@ const App: React.FC<{}> = () => {
 	const [isWindowClose, setIsWindowClose] = useState<boolean>(false)
 
 	const backServer = process.env.PUBLIC_BACKEND_API_URL
-	const frontServer = process.env.PUBLIC_FONTEND_URL
+	const frontServer = process.env.PUBLIC_FRONTEND_URL
 
 	useEffect(() => {})
 
@@ -233,7 +233,7 @@ const App: React.FC<{}> = () => {
 				'folder페이지로 이동합니다.',
 				`${frontServer}/folders/${usersFolderId}/issues`,
 			)
-			window.close()
+			// window.close()
 		}
 
 		onSubmitVideoData()
