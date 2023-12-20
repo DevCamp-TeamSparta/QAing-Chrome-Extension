@@ -233,7 +233,7 @@ chrome.runtime.onMessage.addListener(
 		if (request.action === 'stopRecordingToBackgournd') {
 			console.log('stopRecordingToBackgournd')
 			closeRecorder()
-			isActive = false
+			chrome.storage.local.set({ isActive: false })
 			chrome.tabs.query(
 				{ url: chrome.runtime.getURL('options.html') },
 				function (tabs) {

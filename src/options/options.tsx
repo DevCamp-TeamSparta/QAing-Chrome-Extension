@@ -233,7 +233,7 @@ const App: React.FC<{}> = () => {
 				'folder페이지로 이동합니다.',
 				`${frontServer}/folders/${usersFolderId}/issues`,
 			)
-			window.close()
+			// window.close()
 		}
 
 		onSubmitVideoData()
@@ -241,27 +241,6 @@ const App: React.FC<{}> = () => {
 
 	return (
 		<div>
-			{/* <div>옵션페이지 확인</div>
-			<div className="w-[300px] h-[720px] bg-gray-200 text-xl">
-				옵션페이지 확인
-				<button
-					onClick={handleStartStop}
-					className=" text-2xl font-white bg-blue-300  "
-				>
-					{recording ? '녹화 종료' : '녹화 시작'}
-				</button>
-				{videoURL && (
-					<>
-						<video controls src={videoURL} width="400"></video>
-						<br />
-						{recordedChunks && (
-							<button onClick={() => handleDownloadClick(recordedChunks)}>
-								Download
-							</button>
-						)}
-					</>
-				)}
-			</div> */}
 			<div className="bg-[#EDFBFB] h-screen">
 				{' '}
 				{/* 배경색 설정 */}
