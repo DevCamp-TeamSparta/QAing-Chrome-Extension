@@ -4,7 +4,11 @@ import React from 'react'
 import StartButton from '../atoms/RecorderStartButtonAtoms/index'
 import StopButton from '../atoms/RecorderStopButtonAtoms'
 
-function Recorder() {
+interface RecorderProps {
+	initialPosition: { x: number; y: number }
+}
+
+function Recorder({ initialPosition }: RecorderProps) {
 	const [recording, setRecording] = useState(false)
 	const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -28,6 +32,12 @@ function Recorder() {
 
 	//환경 변수
 	const frontServer = process.env.PUBLIC_FRONTEND_URL
+
+	// 마우스 드래깅
+	const [position, setPosition] = useState(initialPosition)
+	const [isDragging, setIsDragging] = useState(false)
+	const positionRef = useRef({ x: 0, y: 0, startX: 0, startY: 0 })
+	const animationFrameId = useRef<number | null>(null)
 
 	const stopRecording = () => {
 		if (mediaRecorder) {
@@ -262,8 +272,35 @@ function Recorder() {
 	}
 
 	useEffect(() => {
+		chrome.storage.local.set({ isPlaying })
+	}, [isPlaying])
+
+	useEffect(() => {
+		chrome.storage.local.set({ timeRecords })
+	}, [timeRecords])
+
+	useEffect(() => {
+		setPosition(initialPosition)
+	}, [initialPosition])
+
+	useEffect(() => {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
+
+	useEffect(() => {
+		const messageListener = (message: any, sender: any, sendResponse: any) => {
+			if (message.action === 'updateRecorderState') {
+				setIsPlaying(message.isPlaying)
+				setTimeRecords(message.timeRecords)
+			}
+		}
+
+		chrome.runtime.onMessage.addListener(messageListener)
+
+		return () => {
+			chrome.runtime.onMessage.removeListener(messageListener)
+		}
+	}, [])
 
 	// 🙌 단축키
 	useEffect(() => {
@@ -303,8 +340,90 @@ function Recorder() {
 		console.log('timeRecordsCount', timeRecordsCount)
 	}, [])
 
+	const handleMouseMove = (e: MouseEvent) => {
+		if (!isDragging) return
+		e.preventDefault()
+
+		document.body.style.cursor = 'grabbing'
+
+		const deltaX = e.clientX - positionRef.current.startX
+		const deltaY = e.clientY - positionRef.current.startY
+
+		positionRef.current.startX = e.clientX
+		positionRef.current.startY = e.clientY
+		positionRef.current.x += deltaX
+		positionRef.current.y += deltaY
+
+		animationFrameId.current = requestAnimationFrame(updatePosition)
+	}
+
+	const updatePosition = () => {
+		setPosition({
+			x: positionRef.current.x,
+			y: positionRef.current.y,
+		})
+	}
+
+	const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		setIsDragging(true)
+		document.body.style.cursor = 'grabbing'
+		positionRef.current.x = position.x
+		positionRef.current.y = position.y
+
+		positionRef.current.startX = e.clientX
+		positionRef.current.startY = e.clientY
+	}
+
+	const handleMouseUp = () => {
+		setIsDragging(false)
+		document.body.style.cursor = ''
+
+		// 위치 저장
+		const newPosition = { x: positionRef.current.x, y: positionRef.current.y }
+		chrome.storage.local.set({ recorderPosition: newPosition })
+
+		if (animationFrameId.current) {
+			cancelAnimationFrame(animationFrameId.current)
+		}
+	}
+
+	useEffect(() => {
+		setPosition(initialPosition)
+	}, [initialPosition])
+
+	useEffect(() => {
+		if (isDragging) {
+			document.body.style.cursor = 'grabbing'
+			window.addEventListener('mousemove', handleMouseMove as any)
+			window.addEventListener('mouseup', handleMouseUp)
+		} else {
+			document.body.style.cursor = ''
+			window.removeEventListener('mousemove', handleMouseMove as any)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+
+		return () => {
+			document.body.style.cursor = ''
+			if (animationFrameId.current !== null) {
+				cancelAnimationFrame(animationFrameId.current)
+			}
+			window.removeEventListener('mousemove', handleMouseMove as any)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+	}, [isDragging])
+
 	return extensionIsActive === true ? (
-		<section className="fixed left-[50px] bottom-[70px] z-900 ">
+		<section
+			className="recorder fixed left-[50px] bottom-[70px] z-50"
+			onMouseDown={handleMouseDown}
+			onMouseUp={handleMouseUp}
+			onMouseOver={() => (document.body.style.cursor = 'pointer')}
+			onMouseOut={() => (document.body.style.cursor = '')}
+			style={{
+				transform: `translate(${position.x}px, ${position.y}px)`,
+			}}
+		>
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
 				<div className="flex flex-row h-[68px]  bg-[#3C3C3C]  px-2 py-2  rounded-full">

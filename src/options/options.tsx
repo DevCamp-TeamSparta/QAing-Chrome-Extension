@@ -19,7 +19,7 @@ const App: React.FC<{}> = () => {
 	const [isWindowClose, setIsWindowClose] = useState<boolean>(false)
 
 	const backServer = process.env.PUBLIC_BACKEND_API_URL
-	const frontServer = process.env.PUBLIC_FRONTEND_URL
+	const frontServer = process.env.PUBLIC_FONTEND_URL
 
 	useEffect(() => {})
 
@@ -70,12 +70,12 @@ const App: React.FC<{}> = () => {
 				setMediaStream(stream)
 			})
 			.catch((error) => {
-				console.log('에러발생', error)
-				// chrome.runtime.sendMessage({ action: 'cancel' })
+				console.log('사용자 미디어 스트림 취소', error)
 				stopRecording()
 				chrome.storage.local.set({ isActive: false })
 				chrome.storage.local.set({ isPlaying: false })
-				window.close()
+				//chrome.runtime.sendMessage({ type: 'cancel' })
+				//window.close()
 			})
 	}
 
@@ -94,22 +94,6 @@ const App: React.FC<{}> = () => {
 
 	const handleStartStop = () => {
 		setRecording((prev) => !prev)
-	}
-
-	const handleDownloadClick = (blob: Blob) => {
-		// 녹화된 비디오 다운로드
-		if (recordedChunks) {
-			console.log('비디오 다운로드 준비완료')
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = 'recorded-screen.webm'
-			document.body.appendChild(a)
-			a.click()
-			URL.revokeObjectURL(url)
-			document.body.removeChild(a)
-			console.log('다운 가자!')
-		}
 	}
 
 	const [optionsStopRecording, setOptionsStopRecording] = useState(false)
@@ -233,7 +217,7 @@ const App: React.FC<{}> = () => {
 				'folder페이지로 이동합니다.',
 				`${frontServer}/folders/${usersFolderId}/issues`,
 			)
-			window.close()
+			//window.close()
 		}
 
 		onSubmitVideoData()
@@ -241,6 +225,27 @@ const App: React.FC<{}> = () => {
 
 	return (
 		<div>
+			{/* <div>옵션페이지 확인</div>
+			<div className="w-[300px] h-[720px] bg-gray-200 text-xl">
+				옵션페이지 확인
+				<button
+					onClick={handleStartStop}
+					className=" text-2xl font-white bg-blue-300  "
+				>
+					{recording ? '녹화 종료' : '녹화 시작'}
+				</button>
+				{videoURL && (
+					<>
+						<video controls src={videoURL} width="400"></video>
+						<br />
+						{recordedChunks && (
+							<button onClick={() => handleDownloadClick(recordedChunks)}>
+								Download
+							</button>
+						)}
+					</>
+				)}
+			</div> */}
 			<div className="bg-[#EDFBFB] h-screen">
 				{' '}
 				{/* 배경색 설정 */}
@@ -250,8 +255,8 @@ const App: React.FC<{}> = () => {
 				</div>
 				{/* 녹화 전 설명 이미지와 버튼 */}
 				{!mediaStream && (
-					<div className="flex flex-col items-center justify-center h-screen ">
-						<div className="mt-[200px]">
+					<div className="flex flex-col items-center justify-center h-screen">
+						<div className="absolute bottom-[18px]">
 							{/* 위치 조정 */}
 							<div>
 								<svg
