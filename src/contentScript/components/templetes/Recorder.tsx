@@ -430,7 +430,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 					<div className="   rounded-full flex flex-row items-center px-2 py-2  ">
 						{isPlaying ? (
 							<button
-								className="  rounded-[99px] flex flex-row items-center  px-2 py-2 hover:bg-[#5F6060]"
+								className="  rounded-[99px] flex flex-row items-center bg-[#3C3C3C] px-2 py-2 hover:bg-[#5F6060] border-none "
 								onClick={stopRecordingState}
 							>
 								<div className="flex flex-row  ">
@@ -446,7 +446,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 							</button>
 						) : (
 							<button
-								className="   rounded-[99px] flex flex-row items-center px-2 py-2 hover:bg-[#5F6060] "
+								className="   rounded-[99px] flex flex-row items-center px-2 py-2 bg-[#3C3C3C] hover:bg-[#5F6060] border-none "
 								onClick={isLogin}
 							>
 								<div className="flex flex-row  ">
@@ -461,7 +461,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 					<div className="px-2 py-2 flex flex-row items-center">
 						{isPlaying ? (
 							<button
-								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 hover:bg-[#5F6060] "
+								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 bg-[#3C3C3C] hover:bg-[#5F6060] border-none"
 								onClick={handleRecordTime}
 							>
 								<div className="flex flex-row items-center   ">
