@@ -3,6 +3,7 @@ import axios from 'axios'
 import React from 'react'
 import StartButton from '../atoms/RecorderStartButtonAtoms/index'
 import StopButton from '../atoms/RecorderStopButtonAtoms'
+import amplitude from 'amplitude-js'
 
 interface RecorderProps {
 	initialPosition: { x: number; y: number }
@@ -222,6 +223,15 @@ function Recorder({ initialPosition }: RecorderProps) {
 
 	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
+		const totalDuration = Math.floor(time)
+		const issueCnt = timeRecords.length
+
+		amplitude.getInstance().logEvent('qaing_record_save_button_click', {
+			user_id: amplitude.getInstance().getUserId(),
+			total_duration: totalDuration,
+			issue_number: issueCnt,
+		})
+
 		if (isPlaying && timeRecords.length === 0) {
 			alert(
 				'저장된 이슈가 없어 이슈 파일이 만들어지지 않았어요! 홈으로 이동할게요! 🙌 ',
@@ -415,7 +425,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 
 	return extensionIsActive === true ? (
 		<section
-			className="recorder fixed left-[50px] bottom-[70px] z-50"
+			className="recorder fixed left-[50px] bottom-[70px] z-[9999]"
 			onMouseDown={handleMouseDown}
 			onMouseUp={handleMouseUp}
 			onMouseOver={() => (document.body.style.cursor = 'pointer')}
@@ -427,7 +437,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
 				<div className="flex flex-row h-[68px]  bg-[#3C3C3C]  px-2 py-2  rounded-full">
-					<div className="   rounded-full flex flex-row items-center px-2 py-2  ">
+					<div className="   rounded-full flex flex-row items-center  px-2 py-2  ">
 						{isPlaying ? (
 							<button
 								className="  rounded-[99px] flex flex-row items-center bg-[#3C3C3C] px-2 py-2 hover:bg-[#5F6060] border-none "
@@ -457,7 +467,23 @@ function Recorder({ initialPosition }: RecorderProps) {
 						)}
 					</div>
 					{/* 가운데 막대바 */}
-					<div className="h-[28px] border border-gray-700 ml-2 my-auto "></div>
+					<div className="my-auto">
+						<svg
+							width="1"
+							height="28"
+							viewBox="0 0 1 28"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<line
+								x1="0.5"
+								y1="2.18557e-08"
+								x2="0.499999"
+								y2="28"
+								stroke="#808181"
+							/>
+						</svg>
+					</div>
 					<div className="px-2 py-2 flex flex-row items-center">
 						{isPlaying ? (
 							<button

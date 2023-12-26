@@ -2,14 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import '../style/input.css'
 import Recorder from './components/templetes/Recorder'
-
-// const App: React.FC<Record<string, never>> = () => {
-// 	return (
-// 		<>
-// 			<Recorder />
-// 		</>
-// 	)
-// }
+import amplitude from 'amplitude-js'
 
 const App: React.FC<Record<string, never>> = () => {
 	const [isActive, setIsActive] = useState(false)
@@ -64,9 +57,22 @@ const App: React.FC<Record<string, never>> = () => {
 		}
 	}, [])
 
+	//amplitude init
+	const initAmplitude = () => {
+		if (typeof window !== 'undefined') {
+			amplitude.getInstance().init('2e2e5a386856efdf3237cf254a9d14d9')
+			console.log('QAing Amplitude Initialized:', amplitude.getInstance())
+		}
+	}
+
+	useEffect(() => {
+		initAmplitude()
+	}, [])
+
 	return <>{isActive && <Recorder initialPosition={recorderPosition} />}</>
 }
 
 const root = document.createElement('div')
+root.id = 'tailwind_qaing'
 document.body.appendChild(root)
 ReactDOM.createRoot(root).render(<App />)

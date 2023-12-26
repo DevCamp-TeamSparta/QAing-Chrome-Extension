@@ -246,7 +246,7 @@ const App: React.FC<{}> = () => {
 					</>
 				)}
 			</div> */}
-			<div className="bg-[#EDFBFB] h-screen">
+			<div className="bg-[#EDFBFB] w-screen h-screen">
 				{' '}
 				{/* 배경색 설정 */}
 				{/* 로고 이미지 */}
