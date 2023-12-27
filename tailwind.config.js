@@ -6,6 +6,9 @@ export default {
 		extend: {},
 	},
 	plugins: [],
+	corePlugins: {
+		preflight: false,
+	},
 	theme: {
 		extend: {
 			fontFamily: {
