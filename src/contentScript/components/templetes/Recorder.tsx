@@ -3,8 +3,13 @@ import axios from 'axios'
 import React from 'react'
 import StartButton from '../atoms/RecorderStartButtonAtoms/index'
 import StopButton from '../atoms/RecorderStopButtonAtoms'
+import amplitude from 'amplitude-js'
 
-function Recorder() {
+interface RecorderProps {
+	initialPosition: { x: number; y: number }
+}
+
+function Recorder({ initialPosition }: RecorderProps) {
 	const [recording, setRecording] = useState(false)
 	const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -28,6 +33,12 @@ function Recorder() {
 
 	//환경 변수
 	const frontServer = process.env.PUBLIC_FRONTEND_URL
+
+	// 마우스 드래깅
+	const [position, setPosition] = useState(initialPosition)
+	const [isDragging, setIsDragging] = useState(false)
+	const positionRef = useRef({ x: 0, y: 0, startX: 0, startY: 0 })
+	const animationFrameId = useRef<number | null>(null)
 
 	const stopRecording = () => {
 		if (mediaRecorder) {
@@ -212,6 +223,15 @@ function Recorder() {
 
 	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
+		const totalDuration = Math.floor(time)
+		const issueCnt = timeRecords.length
+
+		amplitude.getInstance().logEvent('qaing_record_save_button_click', {
+			user_id: amplitude.getInstance().getUserId(),
+			total_duration: totalDuration,
+			issue_number: issueCnt,
+		})
+
 		if (isPlaying && timeRecords.length === 0) {
 			alert(
 				'저장된 이슈가 없어 이슈 파일이 만들어지지 않았어요! 홈으로 이동할게요! 🙌 ',
@@ -262,8 +282,35 @@ function Recorder() {
 	}
 
 	useEffect(() => {
+		chrome.storage.local.set({ isPlaying })
+	}, [isPlaying])
+
+	useEffect(() => {
+		chrome.storage.local.set({ timeRecords })
+	}, [timeRecords])
+
+	useEffect(() => {
+		setPosition(initialPosition)
+	}, [initialPosition])
+
+	useEffect(() => {
 		console.log('accessToken', accessToken)
 	}, [accessToken])
+
+	useEffect(() => {
+		const messageListener = (message: any, sender: any, sendResponse: any) => {
+			if (message.action === 'updateRecorderState') {
+				setIsPlaying(message.isPlaying)
+				setTimeRecords(message.timeRecords)
+			}
+		}
+
+		chrome.runtime.onMessage.addListener(messageListener)
+
+		return () => {
+			chrome.runtime.onMessage.removeListener(messageListener)
+		}
+	}, [])
 
 	// 🙌 단축키
 	useEffect(() => {
@@ -303,15 +350,97 @@ function Recorder() {
 		console.log('timeRecordsCount', timeRecordsCount)
 	}, [])
 
+	const handleMouseMove = (e: MouseEvent) => {
+		if (!isDragging) return
+		e.preventDefault()
+
+		document.body.style.cursor = 'grabbing'
+
+		const deltaX = e.clientX - positionRef.current.startX
+		const deltaY = e.clientY - positionRef.current.startY
+
+		positionRef.current.startX = e.clientX
+		positionRef.current.startY = e.clientY
+		positionRef.current.x += deltaX
+		positionRef.current.y += deltaY
+
+		animationFrameId.current = requestAnimationFrame(updatePosition)
+	}
+
+	const updatePosition = () => {
+		setPosition({
+			x: positionRef.current.x,
+			y: positionRef.current.y,
+		})
+	}
+
+	const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		setIsDragging(true)
+		document.body.style.cursor = 'grabbing'
+		positionRef.current.x = position.x
+		positionRef.current.y = position.y
+
+		positionRef.current.startX = e.clientX
+		positionRef.current.startY = e.clientY
+	}
+
+	const handleMouseUp = () => {
+		setIsDragging(false)
+		document.body.style.cursor = ''
+
+		// 위치 저장
+		const newPosition = { x: positionRef.current.x, y: positionRef.current.y }
+		chrome.storage.local.set({ recorderPosition: newPosition })
+
+		if (animationFrameId.current) {
+			cancelAnimationFrame(animationFrameId.current)
+		}
+	}
+
+	useEffect(() => {
+		setPosition(initialPosition)
+	}, [initialPosition])
+
+	useEffect(() => {
+		if (isDragging) {
+			document.body.style.cursor = 'grabbing'
+			window.addEventListener('mousemove', handleMouseMove as any)
+			window.addEventListener('mouseup', handleMouseUp)
+		} else {
+			document.body.style.cursor = ''
+			window.removeEventListener('mousemove', handleMouseMove as any)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+
+		return () => {
+			document.body.style.cursor = ''
+			if (animationFrameId.current !== null) {
+				cancelAnimationFrame(animationFrameId.current)
+			}
+			window.removeEventListener('mousemove', handleMouseMove as any)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+	}, [isDragging])
+
 	return extensionIsActive === true ? (
-		<section className="fixed left-[50px] bottom-[70px] z-900 ">
+		<section
+			className="recorder fixed left-[50px] bottom-[70px] z-[9999]"
+			onMouseDown={handleMouseDown}
+			onMouseUp={handleMouseUp}
+			onMouseOver={() => (document.body.style.cursor = 'pointer')}
+			onMouseOut={() => (document.body.style.cursor = '')}
+			style={{
+				transform: `translate(${position.x}px, ${position.y}px)`,
+			}}
+		>
 			{/* <h1>Screen Recorder</h1> */}
 			<div className="inline-block ">
 				<div className="flex flex-row h-[68px]  bg-[#3C3C3C]  px-2 py-2  rounded-full">
-					<div className="   rounded-full flex flex-row items-center px-2 py-2  ">
+					<div className="   rounded-full flex flex-row items-center  px-2 py-2  ">
 						{isPlaying ? (
 							<button
-								className="  rounded-[99px] flex flex-row items-center  px-2 py-2 hover:bg-[#5F6060]"
+								className="  rounded-[99px] flex flex-row items-center bg-[#3C3C3C] px-2 py-2 hover:bg-[#5F6060] border-none "
 								onClick={stopRecordingState}
 							>
 								<div className="flex flex-row  ">
@@ -327,7 +456,7 @@ function Recorder() {
 							</button>
 						) : (
 							<button
-								className="   rounded-[99px] flex flex-row items-center px-2 py-2 hover:bg-[#5F6060] "
+								className="   rounded-[99px] flex flex-row items-center px-2 py-2 bg-[#3C3C3C] hover:bg-[#5F6060] border-none "
 								onClick={isLogin}
 							>
 								<div className="flex flex-row  ">
@@ -338,11 +467,27 @@ function Recorder() {
 						)}
 					</div>
 					{/* 가운데 막대바 */}
-					<div className="h-[28px] border border-gray-700 ml-2 my-auto "></div>
+					<div className="my-auto">
+						<svg
+							width="1"
+							height="28"
+							viewBox="0 0 1 28"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<line
+								x1="0.5"
+								y1="2.18557e-08"
+								x2="0.499999"
+								y2="28"
+								stroke="#808181"
+							/>
+						</svg>
+					</div>
 					<div className="px-2 py-2 flex flex-row items-center">
 						{isPlaying ? (
 							<button
-								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 hover:bg-[#5F6060] "
+								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 bg-[#3C3C3C] hover:bg-[#5F6060] border-none"
 								onClick={handleRecordTime}
 							>
 								<div className="flex flex-row items-center   ">

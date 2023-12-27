@@ -4,6 +4,40 @@ chrome.storage.local.get(['isActive'], function (result) {
 	}
 })
 
+// 탭이 업데이트되거나 활성화될 때 Recorder 상태를 전달하는 함수
+function updateTabWithRecorderState(tabId: any) {
+	chrome.storage.local.get(['isPlaying', 'timeRecords'], function (result) {
+		if (tabId) {
+			chrome.tabs.sendMessage(tabId, {
+				action: 'updateRecorderState',
+				isPlaying: result.isPlaying,
+				timeRecords: result.timeRecords,
+			})
+		}
+	})
+}
+
+// 탭이 새로고침되거나 활성화될 때 해당 함수를 호출
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+	if (changeInfo.status === 'complete') {
+		updateTabWithRecorderState(tabId)
+	}
+})
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+	updateTabWithRecorderState(activeInfo.tabId)
+})
+
+chrome.tabs.onCreated.addListener((tab) => {
+	chrome.storage.local.get(['isActive', 'recorderPosition'], (result) => {
+		if (result.isActive && tab.id) {
+			chrome.scripting.executeScript({
+				target: { tabId: tab.id },
+				files: ['contentScript.js'],
+			})
+		}
+	})
+})
 // 아이콘 클릭 시 활성화/비활성화 상태 전환
 chrome.action.onClicked.addListener(() => {
 	chrome.storage.local.get(['isActive'], function (result) {
@@ -29,15 +63,36 @@ chrome.action.onClicked.addListener(() => {
 	})
 })
 
+function executeContentScript(tabId: number) {
+	chrome.storage.local.get(['recorderPosition'], function (result) {
+		if (result.recorderPosition) {
+			chrome.scripting.executeScript({
+				target: { tabId: tabId },
+				files: ['contentScript.js'],
+				// contentScript에 Recorder 위치 정보 전달
+			})
+		}
+	})
+}
+
 // 탭이 새로고침 또는 활성화될 때 현재 상태에 따라 콘텐츠 스크립트 삽입
 function handleTabUpdate(tabId: number) {
 	chrome.storage.local.get(['isActive'], function (result) {
 		if (result.isActive) {
-			closeBeforeTab()
-			chrome.scripting.executeScript({
-				target: { tabId: tabId },
-				files: ['contentScript.js'],
-			})
+			// Recorder가 이미 있는지 확인
+			chrome.tabs.sendMessage(
+				tabId,
+				{ action: 'checkRecorder' },
+				(response) => {
+					if (chrome.runtime.lastError || !response?.found) {
+						// Recorder가 없으면 새로 생성
+						chrome.scripting.executeScript({
+							target: { tabId: tabId },
+							files: ['contentScript.js'],
+						})
+					}
+				},
+			)
 		}
 	})
 }
