@@ -110,11 +110,11 @@ function handleTabUpdate(tabId: number) {
 	})
 }
 
-// chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-// 	if (changeInfo.status === 'complete') {
-// 		handleTabUpdate(tabId)
-// 	}
-// })
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+	if (changeInfo.status === 'complete') {
+		handleTabUpdate(tabId)
+	}
+})
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
 	handleTabUpdate(activeInfo.tabId)

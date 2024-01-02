@@ -72,8 +72,12 @@ const App: React.FC<Record<string, never>> = () => {
 
 	return (
 		<div>
-			<TooltipMolcule />
-			{isActive && <Recorder initialPosition={recorderPosition} />}
+			{isActive && (
+				<div>
+					<TooltipMolcule />
+					<Recorder initialPosition={recorderPosition} />
+				</div>
+			)}
 		</div>
 	)
 }
