@@ -446,12 +446,20 @@ const App: React.FC<{}> = () => {
 				)}
 				{/* 녹화 중 UI */}
 				{mediaStream && (
-					<div className="flex flex-col items-center w-screen ">
+					<div className="flex flex-col items-center ">
 						{/* 녹화 중 표시 텍스트 */}
-						<h1 className="h1 font-bold text-00cccc mb-6 text-gray-900 ">
-							녹화중이에요!
-						</h1>
-						<div className="mb-10">
+						<div className="box-border text-center">
+							<h1 className="text-[40px] font-bold leading-[44px]  ">
+								녹화 중이에요!
+							</h1>
+							<h1 className="text-[40px] font-bold  leading-[44px] relative bottom-5  ">
+								QA를 진행할 화면으로 이동해주세요
+							</h1>
+							<p className="text-[30px] font-bold leading-[44px] text-sementic-danger relative bottom-8 ">
+								🚨 녹화중 현재 창을 닫으면 녹화가 중지돼요
+							</p>
+						</div>
+						<div className="relative bottom-[70px]">
 							<svg
 								width="739"
 								height="276"
