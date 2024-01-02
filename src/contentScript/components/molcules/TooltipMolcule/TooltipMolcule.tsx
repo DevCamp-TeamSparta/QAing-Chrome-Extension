@@ -52,7 +52,7 @@ export default function TooltipMolcule() {
 	}, [])
 
 	return (
-		<div className="fixed left-[20px] bottom-[134px] z-[9999]">
+		<div className="fixed left-[20px] bottom-[140px] z-[9999]">
 			{isTooltipRecordActivated ? (
 				<div
 					className={`animate-fadeIn  ${
