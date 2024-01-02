@@ -17,7 +17,7 @@ export default function TooltipMolcule() {
 				chrome.storage.local.set({ isTooltipRecordActivated: true })
 				setIsTooltipRecordActivated(true)
 			})
-		}, 1400)
+		}, 1000)
 
 		const timer2 = setTimeout(() => {
 			setIsTooltipRecordActivated(false)
@@ -27,20 +27,20 @@ export default function TooltipMolcule() {
 				chrome.storage.local.set({ isTooltipSaveActivated: true })
 				setIsTooltipSaveActivated(true)
 			})
-		}, 6000)
+		}, 6400)
 
 		const timer3 = setTimeout(() => {
 			setIsTooltipSaveActivated(false)
 			setTooltipSaveFadeout(false)
-		}, 10000)
+		}, 10900)
 
 		const fadeoutTimer1 = setTimeout(() => {
 			setTooltiRecordFadeout(true)
-		}, 5500)
+		}, 5800)
 
 		const fadeoutTimer2 = setTimeout(() => {
 			setTooltipSaveFadeout(true)
-		}, 9500)
+		}, 10300)
 
 		return () => {
 			clearTimeout(timer1)
