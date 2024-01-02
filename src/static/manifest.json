@@ -13,7 +13,7 @@
 		"default_title": "QAing",
 		"default_icon": "qaingicon.png"
 	},
-	"host_permissions": ["https://*/*"],
+	"host_permissions": ["https://*/*", "http://localhost/3000"],
 	"permissions": ["cookies", "tabs", "scripting", "activeTab", "storage"],
 	"options_page": "options.html",
 	"background": {

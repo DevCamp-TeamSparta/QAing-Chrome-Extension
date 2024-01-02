@@ -350,19 +350,65 @@ function Recorder({ initialPosition }: RecorderProps) {
 		console.log('timeRecordsCount', timeRecordsCount)
 	}, [])
 
+	const recorderRef = useRef<HTMLDivElement>(null)
+	const [recorderSize, setRecorderSize] = useState({ width: 0, height: 0 })
+
+	useEffect(() => {
+		// 레코더 요소의 크기를 읽어 상태에 저장
+		if (recorderRef.current) {
+			setRecorderSize({
+				width: recorderRef.current.offsetWidth,
+				height: recorderRef.current.offsetHeight,
+			})
+		}
+	}, [])
+
+	// css style을 통해 위치를 지정하는 것과 리액트 컴포넌트의 position 상태와 일치하지 않음.
+	// 그래서 초기 위치를 고정 시켜주고 css style을 통한 위치 지정을 동적으로 변하게 함.
+	const INITIAL_LEFT = 50
+	const INITIAL_BOTTOM = 70
+
+	useEffect(() => {
+		// 저장된 레코더 위치 불러오기
+		chrome.storage.local.get('recorderPosition', (result) => {
+			if (result.recorderPosition) {
+				// 저장된 위치가 있으면 사용
+				setPosition(result.recorderPosition)
+			} else {
+				// 저장된 위치가 없으면 초기 위치 설정
+				const screenHeight = window.innerHeight
+				const initialY = screenHeight - INITIAL_BOTTOM - recorderSize.height
+				setPosition({ x: INITIAL_LEFT, y: initialY })
+			}
+		})
+	}, [recorderSize.height])
+
 	const handleMouseMove = (e: MouseEvent) => {
 		if (!isDragging) return
 		e.preventDefault()
 
 		document.body.style.cursor = 'grabbing'
 
+		// x좌표, y좌표 이동 값
 		const deltaX = e.clientX - positionRef.current.startX
 		const deltaY = e.clientY - positionRef.current.startY
 
+		// 현재 위치 + 이동 거리를 더해서 새로운 좌표 계산
+		let newX = positionRef.current.x + deltaX
+		let newY = positionRef.current.y + deltaY
+
+		// 화면 경계 확인 및 조정
+		const screenWidth = window.innerWidth
+		const maxY = window.innerHeight - recorderSize.height
+
+		// 레코더가 화면 밖으로 나가지 않게 조정.
+		newX = Math.min(Math.max(newX, 0), screenWidth - recorderSize.width)
+		newY = Math.min(Math.max(newY, 0), maxY)
+
+		positionRef.current.x = newX
+		positionRef.current.y = newY
 		positionRef.current.startX = e.clientX
 		positionRef.current.startY = e.clientY
-		positionRef.current.x += deltaX
-		positionRef.current.y += deltaY
 
 		animationFrameId.current = requestAnimationFrame(updatePosition)
 	}
@@ -425,13 +471,15 @@ function Recorder({ initialPosition }: RecorderProps) {
 
 	return extensionIsActive === true ? (
 		<section
-			className="recorder fixed left-[50px] bottom-[70px] z-[9999]"
+			className="recorder fixed z-[9999]"
+			ref={recorderRef}
 			onMouseDown={handleMouseDown}
 			onMouseUp={handleMouseUp}
 			onMouseOver={() => (document.body.style.cursor = 'pointer')}
 			onMouseOut={() => (document.body.style.cursor = '')}
 			style={{
-				transform: `translate(${position.x}px, ${position.y}px)`,
+				left: `${position.x}px`,
+				bottom: `${window.innerHeight - position.y - recorderSize.height}px`,
 			}}
 		>
 			{/* <h1>Screen Recorder</h1> */}
