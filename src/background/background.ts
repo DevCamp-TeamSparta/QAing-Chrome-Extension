@@ -4,6 +4,18 @@ chrome.storage.local.get(['isActive'], function (result) {
 	}
 })
 
+chrome.storage.local.get(['isTooltipRecordActivated'], function (result) {
+	if (result.isTooltipRecordActivated === undefined) {
+		chrome.storage.local.set({ isTooltipRecordActivated: false })
+	}
+})
+
+chrome.storage.local.get(['isTooltipSaveActivated'], function (result) {
+	if (result.isTooltipSaveActivated === undefined) {
+		chrome.storage.local.set({ isTooltipSaveActivated: false })
+	}
+})
+
 // 탭이 업데이트되거나 활성화될 때 Recorder 상태를 전달하는 함수
 function updateTabWithRecorderState(tabId: any) {
 	chrome.storage.local.get(['isPlaying', 'timeRecords'], function (result) {
@@ -38,6 +50,7 @@ chrome.tabs.onCreated.addListener((tab) => {
 		}
 	})
 })
+
 // 아이콘 클릭 시 활성화/비활성화 상태 전환
 chrome.action.onClicked.addListener(() => {
 	chrome.storage.local.get(['isActive'], function (result) {
@@ -97,11 +110,11 @@ function handleTabUpdate(tabId: number) {
 	})
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-	if (changeInfo.status === 'complete') {
-		handleTabUpdate(tabId)
-	}
-})
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+// 	if (changeInfo.status === 'complete') {
+// 		handleTabUpdate(tabId)
+// 	}
+// })
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
 	handleTabUpdate(activeInfo.tabId)

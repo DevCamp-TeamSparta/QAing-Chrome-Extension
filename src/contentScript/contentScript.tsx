@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import '../style/input.css'
 import Recorder from './components/templetes/Recorder'
 import amplitude from 'amplitude-js'
+import TooltipMolcule from './components/molcules/TooltipMolcule/TooltipMolcule'
 
 const App: React.FC<Record<string, never>> = () => {
 	const [isActive, setIsActive] = useState(false)
@@ -69,7 +70,12 @@ const App: React.FC<Record<string, never>> = () => {
 		initAmplitude()
 	}, [])
 
-	return <>{isActive && <Recorder initialPosition={recorderPosition} />}</>
+	return (
+		<div>
+			<TooltipMolcule />
+			{isActive && <Recorder initialPosition={recorderPosition} />}
+		</div>
+	)
 }
 
 const root = document.createElement('div')
