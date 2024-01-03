@@ -265,27 +265,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	return true
 })
 
-//카운터
-// let timer: string | number | NodeJS.Timeout | undefined
-// let count = 0
-
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-// 	if (request.command === 'startTimer') {
-// 		clearInterval(timer)
-// 		timer = setInterval(() => {
-// 			count++
-// 			chrome.tabs.query({}, (tabs) => {
-// 				tabs.forEach((tab) => {
-// 					tab.id && chrome.tabs.sendMessage(tab.id, { time: count })
-// 				})
-// 			})
-// 		}, 1000)
-// 	} else if (request.command === 'stopTimer') {
-// 		clearInterval(timer)
-// 		count = 0
-// 	}
-// })
-
 // 시작 버튼을 누르면 options페이지로 이동
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 	if (request.action === 'createAndMoveTab') {
@@ -396,3 +375,37 @@ function stopTimer() {
 	timer = 0
 	updateTabs() // 모든 탭에 타이머 리셋
 }
+
+// //웹페이지에서 익스텐션 호출
+// function extensionCall(request: { type: string; message: any }) {
+// 	if (request.type === 'extensionCall') {
+// 		chrome.storage.local.get(['isActive'], function (result) {
+// 			const newIsActive = !result.isActive
+// 			chrome.storage.local.set({ isActive: newIsActive })
+
+// 			// 현재 활성화된 탭만 조회
+// 			chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+// 				// 현재 활성화된 탭이 있다면
+// 				if (tabs.length > 0 && tabs[0].id) {
+// 					if (newIsActive) {
+// 						// contentScript.js 실행
+// 						chrome.scripting.executeScript({
+// 							target: { tabId: tabs[0].id },
+// 							files: ['contentScript.js'],
+// 						})
+// 					} else {
+// 						// isActive 상태를 false로 설정
+// 						chrome.storage.local.set({ isActive: false })
+// 						// 메시지 전송 등의 추가 작업이 필요한 경우
+// 						// chrome.tabs.sendMessage(tabs[0].id, { extensionIsActive: false })
+// 						//     .catch((err) => console.error(err));
+// 					}
+// 				}
+// 			})
+// 		})
+// 	}
+// }
+
+// if (!chrome.runtime.onMessage.hasListener(extensionCall)) {
+// 	chrome.runtime.onMessage.addListener(extensionCall)
+// }

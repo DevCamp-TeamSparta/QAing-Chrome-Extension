@@ -469,6 +469,20 @@ function Recorder({ initialPosition }: RecorderProps) {
 		}
 	}, [isDragging])
 
+	// if (!window.extensionCall) {
+	// 	//웹페이지에서 익스텐션 실행
+	// 	document.addEventListener('extensionCall', (event) => {
+	// 		// 이벤트에서 메시지 추출
+	// 		console.log('extensionCall', event)
+	// 		if (!(event instanceof CustomEvent)) return
+	// 		const message = event.detail.message
+	// 		// 메시지를 로그에 출력하거나 원하는 작업 수행
+	// 		console.log('받은 메시지:', message)
+	// 		// Background Script로 메시지 전송
+	// 		chrome.runtime.sendMessage({ type: 'extensionCall', message: message })
+	// 	})
+	// }
+
 	return extensionIsActive === true ? (
 		<section
 			className="recorder fixed z-[9999]"
