@@ -8,7 +8,12 @@
 		"48": "qaingicon48.png",
 		"128": "qaingicon128.png"
 	},
-
+	"web_accessible_resources": [
+		{
+			"resources": ["icon.png"],
+			"matches": ["<all_urls>"]
+		}
+	],
 	"action": {
 		"default_title": "QAing",
 		"default_icon": "qaingicon.png"
