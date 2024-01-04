@@ -43,7 +43,11 @@ const App: React.FC<{}> = () => {
 
 	const startRecording = () => {
 		navigator.mediaDevices
-			.getDisplayMedia({ video: true })
+			.getDisplayMedia({
+				video: {
+					displaySurface: ['monitor', 'window', 'browser'],
+				},
+			})
 			.then((stream) => {
 				const recorder = new MediaRecorder(stream)
 				setMediaRecorder(recorder)
