@@ -312,31 +312,14 @@ function Recorder({ initialPosition }: RecorderProps) {
 		}
 	}, [])
 
-	// 🙌 단축키
+	// 🙌 단축키 수정 - 이슈저장 ctrl(cmd) + f 로 수정
 	useEffect(() => {
 		const handleKeyPress = (event: KeyboardEvent) => {
-			// (Ctrl 또는 Command) + Shift + G
-			if (
-				(event.ctrlKey || event.metaKey) &&
-				event.shiftKey &&
-				event.key === 'g'
-			) {
-				// 첫 번째 버튼의 기능 (녹화 시작/종료)
-				event.preventDefault()
-				handleStartStopClick()
-			}
-			// (Ctrl 또는 Command) + Shift + B
-			else if (
-				(event.ctrlKey || event.metaKey) &&
-				event.shiftKey &&
-				event.key === 'b'
-			) {
-				// 두 번째 버튼의 기능 (이슈 저장)
+			if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
 				event.preventDefault()
 				handleRecordTime()
 			}
 		}
-
 		// 키보드 이벤트 리스너 등록
 		window.addEventListener('keydown', handleKeyPress)
 
@@ -344,7 +327,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 		return () => {
 			window.removeEventListener('keydown', handleKeyPress)
 		}
-	}, [handleStartStopClick, handleRecordTime])
+	}, [handleRecordTime])
 
 	useEffect(() => {
 		console.log('timeRecordsCount', timeRecordsCount)
@@ -468,6 +451,20 @@ function Recorder({ initialPosition }: RecorderProps) {
 			window.removeEventListener('mouseup', handleMouseUp)
 		}
 	}, [isDragging])
+
+	// if (!window.extensionCall) {
+	// 	//웹페이지에서 익스텐션 실행
+	// 	document.addEventListener('extensionCall', (event) => {
+	// 		// 이벤트에서 메시지 추출
+	// 		console.log('extensionCall', event)
+	// 		if (!(event instanceof CustomEvent)) return
+	// 		const message = event.detail.message
+	// 		// 메시지를 로그에 출력하거나 원하는 작업 수행
+	// 		console.log('받은 메시지:', message)
+	// 		// Background Script로 메시지 전송
+	// 		chrome.runtime.sendMessage({ type: 'extensionCall', message: message })
+	// 	})
+	// }
 
 	return extensionIsActive === true ? (
 		<section
