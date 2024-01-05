@@ -315,7 +315,11 @@ function Recorder({ initialPosition }: RecorderProps) {
 	// 🙌 단축키 수정 - 이슈저장 ctrl(cmd) + f 로 수정
 	useEffect(() => {
 		const handleKeyPress = (event: KeyboardEvent) => {
-			if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+			if (
+				(event.ctrlKey || event.metaKey) &&
+				event.shiftKey &&
+				event.key === 'f'
+			) {
 				event.preventDefault()
 				handleRecordTime()
 			}
@@ -348,8 +352,8 @@ function Recorder({ initialPosition }: RecorderProps) {
 
 	// css style을 통해 위치를 지정하는 것과 리액트 컴포넌트의 position 상태와 일치하지 않음.
 	// 그래서 초기 위치를 고정 시켜주고 css style을 통한 위치 지정을 동적으로 변하게 함.
-	const INITIAL_LEFT = 50
-	const INITIAL_BOTTOM = 70
+	const INITIAL_RIGHT = 50
+	const INITIAL_TOP = 30
 
 	useEffect(() => {
 		// 저장된 레코더 위치 불러오기
@@ -360,8 +364,8 @@ function Recorder({ initialPosition }: RecorderProps) {
 			} else {
 				// 저장된 위치가 없으면 초기 위치 설정
 				const screenHeight = window.innerHeight
-				const initialY = screenHeight - INITIAL_BOTTOM - recorderSize.height
-				setPosition({ x: INITIAL_LEFT, y: initialY })
+				const initialY = screenHeight - INITIAL_TOP - recorderSize.height
+				setPosition({ x: INITIAL_RIGHT, y: initialY })
 			}
 		})
 	}, [recorderSize.height])
@@ -373,8 +377,8 @@ function Recorder({ initialPosition }: RecorderProps) {
 		document.body.style.cursor = 'grabbing'
 
 		// x좌표, y좌표 이동 값
-		const deltaX = e.clientX - positionRef.current.startX
-		const deltaY = e.clientY - positionRef.current.startY
+		const deltaX = positionRef.current.startX - e.clientX
+		const deltaY = positionRef.current.startY - e.clientY
 
 		// 현재 위치 + 이동 거리를 더해서 새로운 좌표 계산
 		let newX = positionRef.current.x + deltaX
@@ -475,8 +479,8 @@ function Recorder({ initialPosition }: RecorderProps) {
 			onMouseOver={() => (document.body.style.cursor = 'pointer')}
 			onMouseOut={() => (document.body.style.cursor = '')}
 			style={{
-				left: `${position.x}px`,
-				bottom: `${window.innerHeight - position.y - recorderSize.height}px`,
+				right: `${position.x}px`,
+				top: `${window.innerHeight - position.y - recorderSize.height}px`,
 			}}
 		>
 			{/* <h1>Screen Recorder</h1> */}

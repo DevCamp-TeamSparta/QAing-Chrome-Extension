@@ -100,12 +100,14 @@ chrome.tabs.onCreated.addListener((tab) => {
 
 // 아이콘 클릭 시 활성화/비활성화 상태 전환
 chrome.action.onClicked.addListener(() => {
-	chrome.storage.local.get(['isActive'], function (result) {
+	chrome.storage.local.get(['isActive', 'isPlaying'], function (result) {
 		const newIsActive = !result.isActive
+		const isPlaying = result.isPlaying
+
 		chrome.storage.local.set({ isActive: newIsActive })
 
 		chrome.tabs.query({}, function (tabs) {
-			tabs.forEach((tab) => {
+			tabs.forEach(async (tab) => {
 				if (tab.id) {
 					if (newIsActive) {
 						chrome.scripting.executeScript({
@@ -113,7 +115,24 @@ chrome.action.onClicked.addListener(() => {
 							files: ['contentScript.js'],
 						})
 					} else {
-						chrome.storage.local.set({ isActive: false })
+						if (isPlaying && tab.url?.includes('options.html')) {
+							// options.html을 포함하는 탭이 열려있고 녹화 중이라면 해당 탭을 닫고 녹화 전 상태로 돌림
+							chrome.tabs.remove(tab.id, () => {
+								if (chrome.runtime.lastError) {
+									console.error(
+										`Error closing tab: ${chrome.runtime.lastError.message}`,
+									)
+								}
+							})
+							console.log('onRemoved tabUrls', tabUrls)
+							chrome.storage.local.set({
+								isActive: false,
+								isPlaying: false,
+								timeRecords: [],
+							})
+							isRecording = false
+							stopTimer()
+						}
 						// chrome.tabs.sendMessage(tab.id, { extensionIsActive: false })
 						//     .catch((err) => console.error(err));
 					}
@@ -313,6 +332,26 @@ function stopTimer() {
 	timer = 0
 	updateTabs() // 모든 탭에 타이머 리셋
 }
+
+//익스텐션 설치시에 app.qaing.co로 이동
+const frontServer = process.env.PUBLIC_FRONTEND_URL
+
+//사용자가 확장 프로그램을 설치했을 때 홈페이지 오픈
+chrome.runtime.onInstalled.addListener(function (details) {
+	if (details.reason === 'install') {
+		// 현재 활성화된 탭을 찾음
+		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+			if (tabs.length > 0) {
+				// 현재 탭 바로 오른쪽에 새 탭을 열도록 인덱스 설정
+				var index = tabs[0].index + 1
+				chrome.tabs.create({ url: frontServer, index: index })
+			} else {
+				// 현재 활성화된 탭이 없을 경우, 새 탭을 기본 위치에 열음
+				chrome.tabs.create({ url: frontServer })
+			}
+		})
+	}
+})
 
 // //웹페이지에서 익스텐션 호출
 // function extensionCall(request: { type: string; message: any }) {
