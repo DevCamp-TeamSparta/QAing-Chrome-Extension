@@ -17,7 +17,7 @@ export default function TooltipMolcule() {
 				chrome.storage.local.set({ isTooltipRecordActivated: true })
 				setIsTooltipRecordActivated(true)
 			})
-		}, 1000)
+		}, 0)
 
 		const timer2 = setTimeout(() => {
 			setIsTooltipRecordActivated(false)
@@ -27,20 +27,20 @@ export default function TooltipMolcule() {
 				chrome.storage.local.set({ isTooltipSaveActivated: true })
 				setIsTooltipSaveActivated(true)
 			})
-		}, 6400)
+		}, 5400)
 
 		const timer3 = setTimeout(() => {
 			setIsTooltipSaveActivated(false)
 			setTooltipSaveFadeout(false)
-		}, 10900)
+		}, 9900)
 
 		const fadeoutTimer1 = setTimeout(() => {
 			setTooltiRecordFadeout(true)
-		}, 5800)
+		}, 4800)
 
 		const fadeoutTimer2 = setTimeout(() => {
 			setTooltipSaveFadeout(true)
-		}, 10300)
+		}, 9300)
 
 		return () => {
 			clearTimeout(timer1)
@@ -52,7 +52,7 @@ export default function TooltipMolcule() {
 	}, [])
 
 	return (
-		<div className="fixed left-[20px] bottom-[140px] z-[9999]">
+		<div className="fixed right-[40px] top-[100px] z-[9999]">
 			{isTooltipRecordActivated ? (
 				<div
 					className={`animate-fadeIn  ${
