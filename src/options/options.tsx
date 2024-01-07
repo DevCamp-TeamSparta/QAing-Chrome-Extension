@@ -35,8 +35,9 @@ const App: React.FC<{}> = () => {
 
 			// 1시간 후에 녹화 중단
 			const timer = setTimeout(() => {
-				stopRecording()
-			}, 3600000)
+				console.log('타이머 최대시간 확인')
+				chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
+			}, 361000)
 			return () => clearTimeout(timer)
 		}
 		if (!recording) {
@@ -139,6 +140,7 @@ const App: React.FC<{}> = () => {
 	}
 
 	useEffect(() => {
+		if (!optionsStopRecording) return
 		console.log(' options 2: 녹화중지 요청 수신완료')
 		stopRecording()
 		console.log(' options 3: 녹화중지 함수 실행완료')
