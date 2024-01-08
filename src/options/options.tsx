@@ -314,6 +314,5 @@ const App: React.FC<{}> = () => {
 }
 
 const root = document.createElement('div')
-root.id = 'tailwind_qaing'
 document.body.appendChild(root)
 ReactDOM.createRoot(root).render(<App />)
