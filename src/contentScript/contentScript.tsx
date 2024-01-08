@@ -35,7 +35,7 @@ const App: React.FC<Record<string, never>> = () => {
 				setPosition(result.recorderPosition)
 			}
 			if (result.isActive) {
-				const existingRecorder = document.querySelector('#recorder')
+				const existingRecorder = document.querySelector('.recorder')
 				if (existingRecorder) {
 					existingRecorder.remove()
 				}

@@ -290,9 +290,9 @@ const App: React.FC<{}> = () => {
 								<div className="ml-1">
 									<Warning />
 								</div>
-								<p className="text-[30px] ml-3 font-bold leading-[44px] text-sementic-danger  ">
+								<div className="text-[30px] ml-3 font-bold leading-[44px] text-sementic-danger  ">
 									녹화 도중 현재 창을 닫으면 녹화가 중지돼요
-								</p>
+								</div>
 							</div>
 						</div>
 						<div className="relative bottom-[45px] ">
@@ -314,5 +314,6 @@ const App: React.FC<{}> = () => {
 }
 
 const root = document.createElement('div')
+root.id = 'root_qaing'
 document.body.appendChild(root)
 ReactDOM.createRoot(root).render(<App />)
