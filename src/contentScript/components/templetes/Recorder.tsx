@@ -4,12 +4,9 @@ import React from 'react'
 import StartButton from '../atoms/RecorderStartButtonAtoms/index'
 import StopButton from '../atoms/RecorderStopButtonAtoms'
 import amplitude from 'amplitude-js'
+import { IssueSaveKeymap } from '../molcules/keymap/IssueSaveKeymap'
 
-interface RecorderProps {
-	initialPosition: { x: number; y: number }
-}
-
-function Recorder({ initialPosition }: RecorderProps) {
+function Recorder() {
 	const [recording, setRecording] = useState(false)
 	const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -23,7 +20,6 @@ function Recorder({ initialPosition }: RecorderProps) {
 	const [isRunning, setIsRunning] = useState<boolean>(false)
 	const [timeRecordsCount, setTimeRecordsCount] = useState<number>(0)
 	const [timeRecords, setTimeRecords] = useState<number[]>([])
-	const THROTTLE_TIME = 1000
 
 	//유적 FolderID
 	const [folderId, setFolderId] = useState<string>('')
@@ -33,12 +29,6 @@ function Recorder({ initialPosition }: RecorderProps) {
 
 	//환경 변수
 	const frontServer = process.env.PUBLIC_FRONTEND_URL
-
-	// 마우스 드래깅
-	const [position, setPosition] = useState(initialPosition)
-	const [isDragging, setIsDragging] = useState(false)
-	const positionRef = useRef({ x: 0, y: 0, startX: 0, startY: 0 })
-	const animationFrameId = useRef<number | null>(null)
 
 	const stopRecording = () => {
 		if (mediaRecorder) {
@@ -131,10 +121,6 @@ function Recorder({ initialPosition }: RecorderProps) {
 			})
 	}
 
-	useEffect(() => {
-		console.log('timeRecords', timeRecords)
-	}, [timeRecords])
-
 	// background에서 타이머와 타임기록을 받아오는 코드
 	useEffect(() => {
 		const receiveTimeRecords = (request: any) => {
@@ -175,11 +161,6 @@ function Recorder({ initialPosition }: RecorderProps) {
 		}
 	}, [])
 
-	// extensionIsActive 확인
-	useEffect(() => {
-		console.log('extensionIsActive', extensionIsActive)
-	}, [extensionIsActive])
-
 	const startTimer = () => {
 		chrome.runtime.sendMessage({ action: 'toggleRecording' })
 
@@ -215,6 +196,7 @@ function Recorder({ initialPosition }: RecorderProps) {
 
 	//재생 정지버튼 고체 버튼  + 시작 버튼
 	const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
 	const startRecordingState = () => {
 		chrome.storage.local.set({ isPlaying: true })
 		setIsPlaying(true)
@@ -290,14 +272,6 @@ function Recorder({ initialPosition }: RecorderProps) {
 	}, [timeRecords])
 
 	useEffect(() => {
-		setPosition(initialPosition)
-	}, [initialPosition])
-
-	useEffect(() => {
-		console.log('accessToken', accessToken)
-	}, [accessToken])
-
-	useEffect(() => {
 		const messageListener = (message: any, sender: any, sendResponse: any) => {
 			if (message.action === 'updateRecorderState') {
 				setIsPlaying(message.isPlaying)
@@ -333,128 +307,20 @@ function Recorder({ initialPosition }: RecorderProps) {
 		}
 	}, [handleRecordTime])
 
-	useEffect(() => {
-		console.log('timeRecordsCount', timeRecordsCount)
-	}, [])
-
-	const recorderRef = useRef<HTMLDivElement>(null)
-	const [recorderSize, setRecorderSize] = useState({ width: 0, height: 0 })
-
-	useEffect(() => {
-		// 레코더 요소의 크기를 읽어 상태에 저장
-		if (recorderRef.current) {
-			setRecorderSize({
-				width: recorderRef.current.offsetWidth,
-				height: recorderRef.current.offsetHeight,
-			})
-		}
-	}, [])
-
-	// css style을 통해 위치를 지정하는 것과 리액트 컴포넌트의 position 상태와 일치하지 않음.
-	// 그래서 초기 위치를 고정 시켜주고 css style을 통한 위치 지정을 동적으로 변하게 함.
-	const INITIAL_RIGHT = 50
-	const INITIAL_TOP = 30
-
-	useEffect(() => {
-		// 저장된 레코더 위치 불러오기
-		chrome.storage.local.get('recorderPosition', (result) => {
-			if (result.recorderPosition) {
-				// 저장된 위치가 있으면 사용
-				setPosition(result.recorderPosition)
-			} else {
-				// 저장된 위치가 없으면 초기 위치 설정
-				const screenHeight = window.innerHeight
-				const initialY = screenHeight - INITIAL_TOP - recorderSize.height
-				setPosition({ x: INITIAL_RIGHT, y: initialY })
-			}
-		})
-	}, [recorderSize.height])
-
-	const handleMouseMove = (e: MouseEvent) => {
-		if (!isDragging) return
-		e.preventDefault()
-
-		document.body.style.cursor = 'grabbing'
-
-		// x좌표, y좌표 이동 값
-		const deltaX = positionRef.current.startX - e.clientX
-		const deltaY = positionRef.current.startY - e.clientY
-
-		// 현재 위치 + 이동 거리를 더해서 새로운 좌표 계산
-		let newX = positionRef.current.x + deltaX
-		let newY = positionRef.current.y + deltaY
-
-		// 화면 경계 확인 및 조정
-		const screenWidth = window.innerWidth
-		const maxY = window.innerHeight - recorderSize.height
-
-		// 레코더가 화면 밖으로 나가지 않게 조정.
-		newX = Math.min(Math.max(newX, 0), screenWidth - recorderSize.width)
-		newY = Math.min(Math.max(newY, 0), maxY)
-
-		positionRef.current.x = newX
-		positionRef.current.y = newY
-		positionRef.current.startX = e.clientX
-		positionRef.current.startY = e.clientY
-
-		animationFrameId.current = requestAnimationFrame(updatePosition)
-	}
-
-	const updatePosition = () => {
-		setPosition({
-			x: positionRef.current.x,
-			y: positionRef.current.y,
-		})
-	}
-
-	const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-		e.preventDefault()
-		setIsDragging(true)
-		document.body.style.cursor = 'grabbing'
-		positionRef.current.x = position.x
-		positionRef.current.y = position.y
-
-		positionRef.current.startX = e.clientX
-		positionRef.current.startY = e.clientY
-	}
-
-	const handleMouseUp = () => {
-		setIsDragging(false)
-		document.body.style.cursor = ''
-
-		// 위치 저장
-		const newPosition = { x: positionRef.current.x, y: positionRef.current.y }
-		chrome.storage.local.set({ recorderPosition: newPosition })
-
-		if (animationFrameId.current) {
-			cancelAnimationFrame(animationFrameId.current)
-		}
-	}
-
-	useEffect(() => {
-		setPosition(initialPosition)
-	}, [initialPosition])
-
-	useEffect(() => {
-		if (isDragging) {
-			document.body.style.cursor = 'grabbing'
-			window.addEventListener('mousemove', handleMouseMove as any)
-			window.addEventListener('mouseup', handleMouseUp)
-		} else {
-			document.body.style.cursor = ''
-			window.removeEventListener('mousemove', handleMouseMove as any)
-			window.removeEventListener('mouseup', handleMouseUp)
-		}
-
-		return () => {
-			document.body.style.cursor = ''
-			if (animationFrameId.current !== null) {
-				cancelAnimationFrame(animationFrameId.current)
-			}
-			window.removeEventListener('mousemove', handleMouseMove as any)
-			window.removeEventListener('mouseup', handleMouseUp)
-		}
-	}, [isDragging])
+	// useEffect(() => {
+	// 	// 저장된 레코더 위치 불러오기
+	// 	chrome.storage.local.get('recorderPosition', (result) => {
+	// 		if (result.recorderPosition) {
+	// 			// 저장된 위치가 있으면 사용
+	// 			setPosition(result.recorderPosition)
+	// 		} else {
+	// 			// 저장된 위치가 없으면 초기 위치 설정
+	// 			const screenHeight = window.innerHeight
+	// 			const initialY = screenHeight - INITIAL_TOP - recorderSize.height
+	// 			setPosition({ x: INITIAL_RIGHT, y: initialY })
+	// 		}
+	// 	})
+	// }, [recorderSize.height])
 
 	// if (!window.extensionCall) {
 	// 	//웹페이지에서 익스텐션 실행
@@ -470,77 +336,54 @@ function Recorder({ initialPosition }: RecorderProps) {
 	// 	})
 	// }
 
-	return extensionIsActive === true ? (
-		<section
-			className="recorder fixed z-[9999]"
-			ref={recorderRef}
-			onMouseDown={handleMouseDown}
-			onMouseUp={handleMouseUp}
-			onMouseOver={() => (document.body.style.cursor = 'pointer')}
-			onMouseOut={() => (document.body.style.cursor = '')}
-			style={{
-				right: `${position.x}px`,
-				top: `${window.innerHeight - position.y - recorderSize.height}px`,
-			}}
-		>
-			{/* <h1>Screen Recorder</h1> */}
-			<div className="inline-block ">
-				<div className="flex flex-row h-[68px]  bg-[#3C3C3C]  px-2 py-2  rounded-full">
-					<div className="   rounded-full flex flex-row items-center  px-2 py-2  ">
-						{isPlaying ? (
+	const [isIssueHovered, setIsIssueHovered] = useState(false)
+
+	return (
+		extensionIsActive && (
+			<section className="recorder">
+				<div className="inline-block">
+					<div className="flex flex-row bg-[#3C3C3C] px-2 py-[6px] rounded-full flex gap-1">
+						<div className="rounded-full flex flex-row items-center px-2 py-[2px] hover:bg-[#5F6060]">
 							<button
-								className="  rounded-[99px] flex flex-row items-center bg-[#3C3C3C] px-2 py-2 hover:bg-[#5F6060] border-none "
+								className="rounded-[99px] flex flex-row items-center bg-inherit border-none"
 								onClick={stopRecordingState}
 							>
-								<div className="flex flex-row  ">
-									<StopButton />
-									<p className="b2 mx-2 my-[6px] text-white w-[70px]">
-										{`00:${Math.floor(time / 60)
-											.toString()
-											.padStart(2, '0')}:${(time % 60)
-											.toString()
-											.padStart(2, '0')}`}
-									</p>
-								</div>
+								{isPlaying ? (
+									<div className="flex items-center">
+										<StopButton />
+										<p className="b2 mx-2 text-white w-[70px]">
+											{`00:${Math.floor(time / 60)
+												.toString()
+												.padStart(2, '0')}:${(time % 60)
+												.toString()
+												.padStart(2, '0')}`}
+										</p>
+									</div>
+								) : (
+									<div className="flex items-center" onClick={isLogin}>
+										<StartButton />
+										<p className="b2 ml-2 mr-0 my-0 text-white whitespace-nowrap">
+											QA 시작
+										</p>
+									</div>
+								)}
 							</button>
-						) : (
-							<button
-								className="   rounded-[99px] flex flex-row items-center px-2 py-2 bg-[#3C3C3C] hover:bg-[#5F6060] border-none "
-								onClick={isLogin}
-							>
-								<div className="flex flex-row  ">
-									<StartButton />
-									<p className="b2 ml-2 my-[6px] text-white">QA 시작</p>
-								</div>
-							</button>
-						)}
-					</div>
-					{/* 가운데 막대바 */}
-					<div className="my-auto">
-						<svg
-							width="1"
-							height="28"
-							viewBox="0 0 1 28"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
+						</div>
+						{/* 가운데 막대바 */}
+						<div className="my-auto w-[1px] h-[28px] bg-gray-800" />
+						{/* 이슈 저장 */}
+						<div
+							className="rounded-[99px] relative px-2 py-[2px] flex flex-col items-center justify-center bg-inherit hover:bg-[#5F6060]"
+							onMouseEnter={() => setIsIssueHovered(true)}
+							onMouseLeave={() => setIsIssueHovered(false)}
 						>
-							<line
-								x1="0.5"
-								y1="2.18557e-08"
-								x2="0.499999"
-								y2="28"
-								stroke="#808181"
-							/>
-						</svg>
-					</div>
-					<div className="px-2 py-2 flex flex-row items-center">
-						{isPlaying ? (
+							{isIssueHovered && <IssueSaveKeymap />}
 							<button
-								className="rounded-[99px] h-[52px] flex flex-row items-center px-2 py-2 pr-2 bg-[#3C3C3C] hover:bg-[#5F6060] border-none"
+								className="flex flex-row items-center border-none bg-inherit"
 								onClick={handleRecordTime}
 							>
-								<div className="flex flex-row items-center   ">
-									<div className="ml-2">
+								<div className="flex flex-row items-center gap-1">
+									<div className={'flex items-center justify-center'}>
 										<svg
 											width="24"
 											height="24"
@@ -554,13 +397,12 @@ function Recorder({ initialPosition }: RecorderProps) {
 											/>
 										</svg>
 									</div>
-
-									<p className="b2 mx-2 my-[6px] text-white">이슈 저장</p>
-									{timeRecordsCount > 0 && (
+									<p className="b2 my-0 text-white whitespace-nowrap">
+										이슈 저장
+									</p>
+									{isPlaying && timeRecordsCount > 0 && (
 										<div
-											className={`bg-white flex flex-row items-center justify-center rounded-full h-[28px] ml-2 ${
-												timeRecordsCount < 10 ? 'min-w-[28px]' : 'min-w-[38px]'
-											}`}
+											className={`bg-white flex flex-row items-center justify-center rounded-full ml-2`}
 										>
 											<div className="mt-[2px] flex flex-row items-center b2">
 												<p> {timeRecordsCount}</p>
@@ -569,38 +411,11 @@ function Recorder({ initialPosition }: RecorderProps) {
 									)}
 								</div>
 							</button>
-						) : (
-							<div
-								className="rounded-[99px] h-[52px] flex flex-row items-center  px-2 py-2  "
-								onClick={handleRecordTime}
-							>
-								<div className="flex flex-row items-center  ">
-									<div>
-										<svg
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path
-												d="M4 2.42471C4 1.63786 4.59695 1 5.33333 1H18.6667C19.403 1 20 1.63786 20 2.42471V21.5725C20 22.8018 18.6407 23.4541 17.7808 22.6373L12.8858 17.988C12.3806 17.5082 11.6194 17.5082 11.1142 17.988L6.21915 22.6373C5.35928 23.4541 4 22.8018 4 21.5725V2.42471Z"
-												fill="white"
-											/>
-										</svg>
-									</div>
-
-									<p className="b2 ml-2 my-[6px] text-white">이슈 저장</p>
-								</div>
-							</div>
-						)}
+						</div>
 					</div>
 				</div>
-				<div className=" "></div>
-			</div>
-		</section>
-	) : (
-		<div></div>
+			</section>
+		)
 	)
 }
 
