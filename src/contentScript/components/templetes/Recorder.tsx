@@ -5,8 +5,12 @@ import StartButton from '../atoms/RecorderStartButtonAtoms/index'
 import StopButton from '../atoms/RecorderStopButtonAtoms'
 import amplitude from 'amplitude-js'
 import { IssueSaveKeymap } from '../molcules/keymap/IssueSaveKeymap'
+import useIsAboveScreenPosition from '../../../hooks/screenPosition'
 
-function Recorder() {
+interface Props {
+	isAbove: boolean
+}
+function Recorder({ isAbove }: Props) {
 	const [recording, setRecording] = useState(false)
 	const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 	const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
@@ -343,9 +347,14 @@ function Recorder() {
 			<section className="recorder">
 				<div className="inline-block">
 					<div className="flex flex-row bg-[#3C3C3C] px-2 py-[6px] rounded-full flex gap-1">
-						<div className="rounded-full flex flex-row items-center px-2 py-[2px] hover:bg-[#5F6060]">
+						<div
+							className="rounded-full flex flex-col items-center justify-center px-2 py-[2px] hover:bg-[#5F6060]"
+							onMouseEnter={() => setIsIssueHovered(true)}
+							onMouseLeave={() => setIsIssueHovered(false)}
+						>
+							<IssueSaveKeymap isAbove={isAbove} />
 							<button
-								className="rounded-[99px] flex flex-row items-center bg-inherit border-none"
+								className="rounded-[99px] p-0 flex flex-row items-center bg-inherit border-none"
 								onClick={stopRecordingState}
 							>
 								{isPlaying ? (
@@ -372,14 +381,9 @@ function Recorder() {
 						{/* 가운데 막대바 */}
 						<div className="my-auto w-[1px] h-[28px] bg-gray-800" />
 						{/* 이슈 저장 */}
-						<div
-							className="rounded-[99px] relative px-2 py-[2px] flex flex-col items-center justify-center bg-inherit hover:bg-[#5F6060]"
-							onMouseEnter={() => setIsIssueHovered(true)}
-							onMouseLeave={() => setIsIssueHovered(false)}
-						>
-							{isIssueHovered && <IssueSaveKeymap />}
+						<div className="rounded-[99px] relative px-2 py-[2px] flex items-center bg-inherit hover:bg-[#5F6060]">
 							<button
-								className="flex flex-row items-center border-none bg-inherit"
+								className="flex flex-row items-center p-0 border-none bg-inherit"
 								onClick={handleRecordTime}
 							>
 								<div className="flex flex-row items-center gap-1">
