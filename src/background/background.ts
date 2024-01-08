@@ -319,6 +319,22 @@ function updateTabs() {
 function startTimer() {
 	timerInterval = setInterval(() => {
 		timer++
+		if (timer === 3600) {
+			chrome.storage.local.set({ isActive: false })
+			chrome.tabs.query(
+				{ url: chrome.runtime.getURL('options.html') },
+				function (tabs) {
+					// 옵션 페이지 탭이 열려 있으면 메시지 전송
+					timeRecords = [3590]
+					console.log('stopRecordingToBackgournd tabs', tabs)
+					tabs[0].id &&
+						chrome.tabs.sendMessage(tabs[0].id, {
+							action: 'stopRecordingToOptions',
+							timeRecords: timeRecords,
+						})
+				},
+			)
+		}
 		updateTabs() // 모든 탭에 타이머 업데이트
 	}, 1000)
 }

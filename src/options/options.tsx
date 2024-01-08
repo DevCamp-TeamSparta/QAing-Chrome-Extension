@@ -35,8 +35,12 @@ const App: React.FC<{}> = () => {
 
 			// 1시간 후에 녹화 중단
 			const timer = setTimeout(() => {
-				stopRecording()
-			}, 3600000)
+				console.log('타이머 최대시간 확인')
+				stopTimer()
+				chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
+				chrome.storage.local.set({ isActive: false })
+				chrome.storage.local.set({ isPlaying: false })
+			}, 3601000)
 			return () => clearTimeout(timer)
 		}
 		if (!recording) {
@@ -139,6 +143,7 @@ const App: React.FC<{}> = () => {
 	}
 
 	useEffect(() => {
+		if (!optionsStopRecording) return
 		console.log(' options 2: 녹화중지 요청 수신완료')
 		stopRecording()
 		console.log(' options 3: 녹화중지 함수 실행완료')
@@ -285,9 +290,9 @@ const App: React.FC<{}> = () => {
 								<div className="ml-1">
 									<Warning />
 								</div>
-								<p className="text-[30px] ml-3 font-bold leading-[44px] text-sementic-danger  ">
+								<div className="text-[30px] ml-3 font-bold leading-[44px] text-sementic-danger  ">
 									녹화 도중 현재 창을 닫으면 녹화가 중지돼요
-								</p>
+								</div>
 							</div>
 						</div>
 						<div className="relative bottom-[45px] ">
@@ -309,5 +314,6 @@ const App: React.FC<{}> = () => {
 }
 
 const root = document.createElement('div')
+root.id = 'root_qaing'
 document.body.appendChild(root)
 ReactDOM.createRoot(root).render(<App />)

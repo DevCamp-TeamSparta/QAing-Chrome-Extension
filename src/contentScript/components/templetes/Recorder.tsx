@@ -181,7 +181,8 @@ function Recorder({ isAbove }: Props) {
 		setIsRunning((prevIsRunning) => !prevIsRunning)
 	}
 
-	const isLogin = () => {
+	const isLogin = (e: React.MouseEvent<HTMLElement>) => {
+		e.stopPropagation()
 		const currentUrl = window.location.origin
 		console.log('currentUrl', currentUrl)
 
@@ -209,6 +210,9 @@ function Recorder({ isAbove }: Props) {
 
 	//녹화정지를 contentScript에서 background를 통해 options로 전달하는 코드
 	const stopRecordingState = () => {
+		if (!isPlaying) {
+			return
+		}
 		const totalDuration = Math.floor(time)
 		const issueCnt = timeRecords.length
 
@@ -346,7 +350,7 @@ function Recorder({ isAbove }: Props) {
 		extensionIsActive && (
 			<section className="recorder">
 				<div className="inline-block">
-					<div className="flex flex-row bg-[#3C3C3C] px-2 py-[6px] rounded-full flex gap-1">
+					<div className="flex flex-row bg-[#3C3C3C] px-2 py-[6px] rounded-full gap-1">
 						<div
 							className="rounded-full flex flex-col items-center justify-center px-2 py-[2px] hover:bg-[#5F6060]"
 							onMouseEnter={() => setIsIssueHovered(true)}
