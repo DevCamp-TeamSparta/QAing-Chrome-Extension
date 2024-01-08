@@ -5,13 +5,16 @@ import Recorder from './components/templetes/Recorder'
 import amplitude from 'amplitude-js'
 import TooltipMolcule from './components/molcules/TooltipMolcule/TooltipMolcule'
 import { useDragHook } from '../hooks/dragHook'
+import useIsAboveScreenPosition from '../hooks/screenPosition'
 
 const App: React.FC<Record<string, never>> = () => {
 	const [isActive, setIsActive] = useState(false)
-	const recorderRef = useRef<HTMLDivElement>(null)
+	const extensionRef = useRef<HTMLDivElement>(null)
 
 	const { handleMouseUp, handleMouseDown, position, setPosition } =
-		useDragHook(recorderRef)
+		useDragHook(extensionRef)
+
+	const isAbove = useIsAboveScreenPosition(extensionRef, 100, [position.y])
 
 	// Recorder 존재 여부를 확인하는 리스너 함수
 	const checkRecorderListener = (
@@ -32,7 +35,7 @@ const App: React.FC<Record<string, never>> = () => {
 				setPosition(result.recorderPosition)
 			}
 			if (result.isActive) {
-				const existingRecorder = document.querySelector('.recorder')
+				const existingRecorder = document.querySelector('#recorder')
 				if (existingRecorder) {
 					existingRecorder.remove()
 				}
@@ -77,7 +80,7 @@ const App: React.FC<Record<string, never>> = () => {
 	return (
 		<div
 			className={'fixed z-[9999]'}
-			ref={recorderRef}
+			ref={extensionRef}
 			onMouseDown={handleMouseDown}
 			onMouseUp={handleMouseUp}
 			onMouseOver={() => (document.body.style.cursor = 'pointer')}
@@ -89,7 +92,7 @@ const App: React.FC<Record<string, never>> = () => {
 		>
 			{isActive && (
 				<div className={'relative flex flex-col items-center'}>
-					<Recorder />
+					<Recorder isAbove={isAbove} />
 					<TooltipMolcule />
 				</div>
 			)}
