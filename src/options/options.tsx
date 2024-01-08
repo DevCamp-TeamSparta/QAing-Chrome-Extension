@@ -36,8 +36,11 @@ const App: React.FC<{}> = () => {
 			// 1시간 후에 녹화 중단
 			const timer = setTimeout(() => {
 				console.log('타이머 최대시간 확인')
+				stopTimer()
 				chrome.runtime.sendMessage({ action: 'stopRecordingToBackgournd' })
-			}, 361000)
+				chrome.storage.local.set({ isActive: false })
+				chrome.storage.local.set({ isPlaying: false })
+			}, 3601000)
 			return () => clearTimeout(timer)
 		}
 		if (!recording) {
@@ -311,5 +314,6 @@ const App: React.FC<{}> = () => {
 }
 
 const root = document.createElement('div')
+root.id = 'tailwind_qaing'
 document.body.appendChild(root)
 ReactDOM.createRoot(root).render(<App />)
