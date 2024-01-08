@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-	important: '#tailwind_qaing',
-	content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+	important: '#root_qaing',
+	content: ['./src/contentScript/**/*.{js,ts,jsx,tsx}'],
 	theme: {
 		extend: {},
 	},

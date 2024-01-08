@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import '../style/input.css'
 import Recorder from './components/templetes/Recorder'
 import amplitude from 'amplitude-js'
 import TooltipMolcule from './components/molcules/TooltipMolcule/TooltipMolcule'
+import { useDragHook } from '../hooks/dragHook'
 
 const App: React.FC<Record<string, never>> = () => {
 	const [isActive, setIsActive] = useState(false)
-	const [recorderPosition, setRecorderPosition] = useState({ x: 0, y: 0 })
+	const recorderRef = useRef<HTMLDivElement>(null)
+
+	const { handleMouseUp, handleMouseDown, position, setPosition } =
+		useDragHook(recorderRef)
 
 	// Recorder 존재 여부를 확인하는 리스너 함수
 	const checkRecorderListener = (
@@ -25,7 +29,7 @@ const App: React.FC<Record<string, never>> = () => {
 		chrome.storage.local.get(['isActive', 'recorderPosition'], (result) => {
 			setIsActive(result.isActive)
 			if (result.recorderPosition) {
-				setRecorderPosition(result.recorderPosition)
+				setPosition(result.recorderPosition)
 			}
 			if (result.isActive) {
 				const existingRecorder = document.querySelector('.recorder')
@@ -43,7 +47,7 @@ const App: React.FC<Record<string, never>> = () => {
 				setIsActive(changes.isActive.newValue)
 			}
 			if (area === 'local' && changes.recorderPosition) {
-				setRecorderPosition(changes.recorderPosition.newValue)
+				setPosition(changes.recorderPosition.newValue)
 			}
 		}
 
@@ -71,11 +75,22 @@ const App: React.FC<Record<string, never>> = () => {
 	}, [])
 
 	return (
-		<div>
+		<div
+			className={'fixed z-[9999]'}
+			ref={recorderRef}
+			onMouseDown={handleMouseDown}
+			onMouseUp={handleMouseUp}
+			onMouseOver={() => (document.body.style.cursor = 'pointer')}
+			onMouseOut={() => (document.body.style.cursor = '')}
+			style={{
+				right: `${position.x}px`,
+				top: `${position.y}px`,
+			}}
+		>
 			{isActive && (
-				<div>
+				<div className={'relative flex flex-col items-center'}>
+					<Recorder />
 					<TooltipMolcule />
-					<Recorder initialPosition={recorderPosition} />
 				</div>
 			)}
 		</div>
@@ -83,6 +98,6 @@ const App: React.FC<Record<string, never>> = () => {
 }
 
 const root = document.createElement('div')
-root.id = 'tailwind_qaing'
+root.id = 'root_qaing'
 document.body.appendChild(root)
 ReactDOM.createRoot(root).render(<App />)

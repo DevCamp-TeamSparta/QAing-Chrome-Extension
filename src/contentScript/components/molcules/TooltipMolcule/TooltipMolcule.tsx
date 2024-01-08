@@ -52,8 +52,8 @@ export default function TooltipMolcule() {
 	}, [])
 
 	return (
-		<div className="fixed right-[40px] top-[100px] z-[9999]">
-			{isTooltipRecordActivated ? (
+		<div className={'absolute top-[50px]'}>
+			{isTooltipRecordActivated && (
 				<div
 					className={`animate-fadeIn  ${
 						tooltipRecordFadeout ? 'animate-fadeOut' : ''
@@ -61,10 +61,8 @@ export default function TooltipMolcule() {
 				>
 					<TooltipRecord />
 				</div>
-			) : (
-				<div></div>
 			)}
-			{isTooltipSaveActivated ? (
+			{isTooltipSaveActivated && (
 				<div
 					className={`animate-fadeIn ${
 						tooltipSaveFadeout ? ' animate-fadeOut' : ''
@@ -72,8 +70,6 @@ export default function TooltipMolcule() {
 				>
 					<TooltipSave />
 				</div>
-			) : (
-				<div></div>
 			)}
 		</div>
 	)

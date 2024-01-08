@@ -11,6 +11,7 @@ const App: React.FC<{}> = () => {
 }
 
 const container = document.createElement('div')
+container.id = 'root_qaing'
 document.body.appendChild(container)
 const root = createRoot(container)
 root.render(<App />)

@@ -2,11 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	#root_qaing {
+		font-family: pretendard, system-ui, sans-serif;
+	}
+}
+
 .h1 {
-	@apply font-semibold text-[32px]  leading-[44px];
+	@apply font-semibold text-[32px] leading-[44px];
 }
 .h2 {
-	@apply font-semibold text-[28px]  leading-[36px];
+	@apply font-semibold text-[28px] leading-[36px];
 }
 .h3 {
 	@apply font-bold text-[24px] leading-8;
