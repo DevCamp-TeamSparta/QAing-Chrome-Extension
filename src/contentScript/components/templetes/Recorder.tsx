@@ -352,7 +352,7 @@ function Recorder({ isAbove }: Props) {
 							onMouseEnter={() => setIsIssueHovered(true)}
 							onMouseLeave={() => setIsIssueHovered(false)}
 						>
-							<IssueSaveKeymap isAbove={isAbove} />
+							{isIssueHovered && <IssueSaveKeymap isAbove={isAbove} />}
 							<button
 								className="rounded-[99px] p-0 flex flex-row items-center bg-inherit border-none"
 								onClick={stopRecordingState}
